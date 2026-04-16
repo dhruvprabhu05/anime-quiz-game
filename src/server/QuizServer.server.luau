@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local QuestionBank = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("QuestionBank"))
@@ -74,6 +75,10 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 		-- Save result to DataStore
 		DataStoreManager.setArchetype(player, result)
 		DataStoreManager.save(player)
+
+		-- Notify leaderboard manager
+		local resultBindable = ServerScriptService:WaitForChild("PlayerResultEvent")
+		resultBindable:Fire(player, result)
 
 		local quizResultRemote = Remotes.get("QuizResult") :: RemoteEvent
 		quizResultRemote:FireClient(player, result)
