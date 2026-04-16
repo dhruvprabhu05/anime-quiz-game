@@ -131,31 +131,11 @@ function TimerUI.build(screenGui: ScreenGui, onComplete: () -> ())
 	UIEffects.applyDarkGlass(skipRobuxButton)
 	UIEffects.addNeonButton(skipRobuxButton, Color3.fromRGB(0, 230, 120))
 
-	-- Watch Ad button — dark glass + neon blue stroke
-	local watchAdButton = Instance.new("TextButton")
-	watchAdButton.Name = "WatchAdButton"
-	watchAdButton.Size = UDim2.new(0.35, 0, 0.07, 0)
-	watchAdButton.Position = UDim2.new(0.325, 0, 0.61, 0)
-	watchAdButton.Text = "Watch Ad — Skip 5 Min (Free)"
-	watchAdButton.TextColor3 = C.textPrimary
-	watchAdButton.TextScaled = true
-	watchAdButton.Font = Enum.Font.GothamBold
-	watchAdButton.BorderSizePixel = 0
-	watchAdButton.ZIndex = 3
-	watchAdButton.Parent = newFrame
-
-	local corner2 = Instance.new("UICorner")
-	corner2.CornerRadius = UDim.new(0, 14)
-	corner2.Parent = watchAdButton
-
-	UIEffects.applyDarkGlass(watchAdButton)
-	UIEffects.addNeonButton(watchAdButton, C.neonBlue)
-
 	-- GamePass button — premium neon gold pulse border
 	local gamePassButton = Instance.new("TextButton")
 	gamePassButton.Name = "GamePassButton"
 	gamePassButton.Size = UDim2.new(0.35, 0, 0.07, 0)
-	gamePassButton.Position = UDim2.new(0.325, 0, 0.71, 0)
+	gamePassButton.Position = UDim2.new(0.325, 0, 0.61, 0)
 	gamePassButton.Text = "Instant Unlock — Never Wait Again (49 R$)"
 	gamePassButton.TextColor3 = C.neonGold
 	gamePassButton.TextScaled = true
@@ -175,16 +155,6 @@ function TimerUI.build(screenGui: ScreenGui, onComplete: () -> ())
 	-- Button handlers
 	skipRobuxButton.MouseButton1Click:Connect(function()
 		MarketplaceService:PromptProductPurchase(player, skipProductId)
-	end)
-
-	watchAdButton.MouseButton1Click:Connect(function()
-		local success, err = pcall(function()
-			local AdService = game:GetService("AdService")
-			AdService:ShowRewardedAd()
-		end)
-		if not success then
-			warn("[TimerUI] Ad not available: " .. tostring(err))
-		end
 	end)
 
 	gamePassButton.MouseButton1Click:Connect(function()
