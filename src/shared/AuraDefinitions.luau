@@ -257,6 +257,36 @@ local definitions: { [string]: AuraConfig } = {
 		lightColor = Color3.fromRGB(255, 230, 60),
 		lightBrightness = 0.5,
 	},
+
+	anime_transformation = {
+		torsoColor = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+			ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 200, 0)),
+			ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
+			ColorSequenceKeypoint.new(0.67, Color3.fromRGB(100, 0, 255)),
+			ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 200)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0)),
+		}),
+		torsoSpeed = NumberRange.new(5, 10),
+		torsoRate = 40,
+		torsoLifetime = NumberRange.new(0.5, 1.2),
+		torsoSize = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1.0),
+			NumberSequenceKeypoint.new(0.3, 2.0),
+			NumberSequenceKeypoint.new(0.7, 1.5),
+			NumberSequenceKeypoint.new(1, 0),
+		}),
+		torsoSpread = Vector2.new(60, 60),
+		groundColor = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 100, 255)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 255, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 100)),
+		}),
+		groundRate = 20,
+		lightColor = Color3.fromRGB(255, 220, 255),
+		lightBrightness = 1.0,
+	},
 }
 
 function AuraDefinitions.get(archetypeId: string): AuraConfig?
