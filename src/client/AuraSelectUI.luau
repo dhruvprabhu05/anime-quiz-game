@@ -295,23 +295,24 @@ function AuraSelectUI.build(screenGui: ScreenGui, unlockedIds: { string }, curre
 	-- Back button: dark glass + neonButton with neonPurple
 	local backButton = Instance.new("TextButton")
 	backButton.Name = "BackButton"
-	backButton.Size = UDim2.new(0.12, 0, 0.05, 0)
-	backButton.Position = UDim2.new(0.44, 0, 0.93, 0)
+	backButton.Size = UDim2.new(0.14, 0, 0.055, 0)
+	backButton.Position = UDim2.new(0.43, 0, 0.93, 0)
 	backButton.BorderSizePixel = 0
-	backButton.Text = "BACK"
-	backButton.TextColor3 = C.neonPurple
+	backButton.Text = "[ BACK ]"
+	backButton.TextColor3 = C.neonCyan
+	backButton.BackgroundColor3 = Color3.fromRGB(0, 30, 40)
+	backButton.BackgroundTransparency = 0
 	backButton.TextScaled = true
-	backButton.Font = Enum.Font.GothamBold
+	backButton.Font = Enum.Font.RobotoMono
 	backButton.AutoButtonColor = false
-	backButton.ZIndex = 3
+	backButton.ZIndex = 10
 	backButton.Parent = frame
 
 	local backCorner = Instance.new("UICorner")
-	backCorner.CornerRadius = UDim.new(0, 12)
+	backCorner.CornerRadius = UDim.new(0, 8)
 	backCorner.Parent = backButton
 
-	UIEffects.applyDarkGlass(backButton)
-	UIEffects.addNeonButton(backButton, C.neonPurple)
+	UIEffects.addNeonButton(backButton, C.neonCyan)
 
 	backButton.MouseButton1Click:Connect(function()
 		onBack()

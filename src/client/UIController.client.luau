@@ -11,6 +11,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "QuizGameUI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
 -- Require UI modules
@@ -20,9 +21,14 @@ local ResultsUI = require(script.Parent:WaitForChild("ResultsUI"))
 local CollectionUI = require(script.Parent:WaitForChild("CollectionUI"))
 local LeaderboardUI = require(script.Parent:WaitForChild("LeaderboardUI"))
 local InterludePlayer = require(script.Parent:WaitForChild("InterludePlayer"))
+local AuraSelectUI = require(script.Parent:WaitForChild("AuraSelectUI"))
 
 -- State
 local currentScreen: string = "none"
+
+-- UI styling
+local UIEffects = require(script.Parent:WaitForChild("UIEffects"))
+local C = UIEffects.COLORS
 
 -- Screen management: hide all, then show one
 local function hideAllScreens()
@@ -33,9 +39,53 @@ local function hideAllScreens()
 	end
 end
 
+
+-- "Open Menu" button — shown only when in hub mode
+local openMenuButton = Instance.new("TextButton")
+openMenuButton.Name = "OpenMenuButton"
+openMenuButton.Size = UDim2.new(0, 150, 0, 38)
+openMenuButton.Position = UDim2.new(0.5, -75, 1, -52)
+openMenuButton.BackgroundColor3 = Color3.fromRGB(8, 6, 20)
+openMenuButton.BackgroundTransparency = 0.2
+openMenuButton.Text = "[ OPEN MENU ]"
+openMenuButton.TextColor3 = C.neonCyan
+openMenuButton.TextScaled = true
+openMenuButton.Font = Enum.Font.RobotoMono
+openMenuButton.ZIndex = 20
+openMenuButton.Visible = false
+openMenuButton.Parent = screenGui
+
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(0, 6)
+menuCorner.Parent = openMenuButton
+
+local menuStroke = Instance.new("UIStroke")
+menuStroke.Color = C.neonCyan
+menuStroke.Thickness = 1.5
+menuStroke.Transparency = 0.3
+menuStroke.Parent = openMenuButton
+
+local menuPadding = Instance.new("UIPadding")
+menuPadding.PaddingLeft = UDim.new(0, 8)
+menuPadding.PaddingRight = UDim.new(0, 8)
+menuPadding.Parent = openMenuButton
+
+-- Screens that can be closed with X (not quiz or timer — those need to be completed)
+local function enterHub()
+	hideAllScreens()
+	currentScreen = "hub"
+	openMenuButton.Visible = true
+end
+
 local function showScreen(name: string)
 	hideAllScreens()
 	currentScreen = name
+	openMenuButton.Visible = false
+
+	if name == "hub" then
+		enterHub()
+		return
+	end
 
 	if name == "welcome" then
 		local frame = screenGui:FindFirstChild("WelcomeFrame")
@@ -62,76 +112,164 @@ local function showScreen(name: string)
 		if frame then
 			frame.Visible = true
 		end
+	elseif name == "auraselect" then
+		local frame = screenGui:FindFirstChild("AuraSelectFrame")
+		if frame then
+			frame.Visible = true
+		end
 	end
 end
 
+openMenuButton.MouseButton1Click:Connect(function()
+	showScreen("welcome")
+end)
+
 -- Build Welcome Screen
+local function makeMenuButton(parent: Frame, text: string, yPos: number, neonColor: Color3): TextButton
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.3, 0, 0.06, 0)
+	btn.Position = UDim2.new(0.35, 0, yPos, 0)
+	btn.BackgroundColor3 = C.bgCard
+	btn.BackgroundTransparency = 0.3
+	btn.Text = text
+	btn.TextColor3 = neonColor
+	btn.TextScaled = true
+	btn.Font = Enum.Font.GothamBold
+	btn.ZIndex = 5
+	btn.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 6)
+	corner.Parent = btn
+
+	UIEffects.addNeonButton(btn, neonColor)
+	return btn
+end
+
 local function buildWelcomeScreen()
 	local frame = Instance.new("Frame")
 	frame.Name = "WelcomeFrame"
 	frame.Size = UDim2.new(1, 0, 1, 0)
-	frame.BackgroundColor3 = Color3.fromRGB(15, 15, 30)
+	frame.BackgroundColor3 = C.bg
 	frame.BorderSizePixel = 0
 	frame.Parent = screenGui
 
+	UIEffects.addGradient(frame, Color3.fromRGB(5, 2, 18), Color3.fromRGB(8, 5, 25), 170)
+	UIEffects.addDigitalParticles(frame, 20)
+	UIEffects.addScanLine(frame)
+
+	-- Main title
 	local title = Instance.new("TextLabel")
 	title.Name = "Title"
-	title.Size = UDim2.new(0.8, 0, 0.15, 0)
-	title.Position = UDim2.new(0.1, 0, 0.15, 0)
+	title.Size = UDim2.new(0.7, 0, 0.09, 0)
+	title.Position = UDim2.new(0.15, 0, 0.13, 0)
 	title.BackgroundTransparency = 1
-	title.Text = "Which Anime Character Are You?"
-	title.TextColor3 = Color3.fromRGB(255, 200, 50)
+	title.Text = "WHICH ANIME CHARACTER"
+	title.TextColor3 = C.textPrimary
 	title.TextScaled = true
-	title.Font = Enum.Font.GothamBold
+	title.Font = Enum.Font.GothamBlack
+	title.ZIndex = 5
 	title.Parent = frame
 
+	local titleAccent = Instance.new("TextLabel")
+	titleAccent.Name = "TitleAccent"
+	titleAccent.Size = UDim2.new(0.4, 0, 0.1, 0)
+	titleAccent.Position = UDim2.new(0.3, 0, 0.22, 0)
+	titleAccent.BackgroundTransparency = 1
+	titleAccent.Text = "ARE YOU?"
+	titleAccent.TextColor3 = C.neonCyan
+	titleAccent.TextScaled = true
+	titleAccent.Font = Enum.Font.GothamBlack
+	titleAccent.ZIndex = 5
+	titleAccent.Parent = frame
+	UIEffects.addGlitchText(titleAccent)
+
+	UIEffects.addDivider(frame, 0.34, C.neonCyan)
+
+	-- Subtitle
 	local subtitle = Instance.new("TextLabel")
-	subtitle.Name = "Subtitle"
-	subtitle.Size = UDim2.new(0.6, 0, 0.06, 0)
-	subtitle.Position = UDim2.new(0.2, 0, 0.32, 0)
+	subtitle.Size = UDim2.new(0.5, 0, 0.04, 0)
+	subtitle.Position = UDim2.new(0.25, 0, 0.37, 0)
 	subtitle.BackgroundTransparency = 1
-	subtitle.Text = "Answer 24 questions to discover your anime personality archetype!"
-	subtitle.TextColor3 = Color3.fromRGB(200, 200, 220)
+	subtitle.Text = "// 24 QUESTIONS — 10 ARCHETYPES — FIND YOURS"
+	subtitle.TextColor3 = C.textSecondary
 	subtitle.TextScaled = true
-	subtitle.Font = Enum.Font.Gotham
+	subtitle.Font = Enum.Font.Code
+	subtitle.ZIndex = 5
 	subtitle.Parent = frame
 
-	local startButton = Instance.new("TextButton")
-	startButton.Name = "StartButton"
-	startButton.Size = UDim2.new(0.3, 0, 0.08, 0)
-	startButton.Position = UDim2.new(0.35, 0, 0.5, 0)
-	startButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-	startButton.Text = "Start Quiz"
-	startButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	startButton.TextScaled = true
-	startButton.Font = Enum.Font.GothamBold
-	startButton.Parent = frame
+	-- Center panel (dark glass container for buttons)
+	local panel = Instance.new("Frame")
+	panel.Size = UDim2.new(0.38, 0, 0.5, 0)
+	panel.Position = UDim2.new(0.31, 0, 0.44, 0)
+	panel.BackgroundColor3 = C.bgPanel
+	panel.BackgroundTransparency = 0.4
+	panel.BorderSizePixel = 0
+	panel.ZIndex = 4
+	panel.Parent = frame
 
-	local corner1 = Instance.new("UICorner")
-	corner1.CornerRadius = UDim.new(0, 12)
-	corner1.Parent = startButton
+	local panelCorner = Instance.new("UICorner")
+	panelCorner.CornerRadius = UDim.new(0, 10)
+	panelCorner.Parent = panel
 
-	local collectionButton = Instance.new("TextButton")
-	collectionButton.Name = "CollectionButton"
-	collectionButton.Size = UDim2.new(0.3, 0, 0.08, 0)
-	collectionButton.Position = UDim2.new(0.35, 0, 0.62, 0)
-	collectionButton.BackgroundColor3 = Color3.fromRGB(80, 80, 180)
-	collectionButton.Text = "My Collection"
-	collectionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	collectionButton.TextScaled = true
-	collectionButton.Font = Enum.Font.GothamBold
-	collectionButton.Parent = frame
+	UIEffects.addNeonPulse(panel, C.neonPurple, 1)
 
-	local corner2 = Instance.new("UICorner")
-	corner2.CornerRadius = UDim.new(0, 12)
-	corner2.Parent = collectionButton
+	-- Buttons inside panel (positions relative to full frame)
+	local startButton = makeMenuButton(frame, "[ START QUIZ ]", 0.48, C.neonCyan)
+	startButton.Font = Enum.Font.GothamBlack
+	UIEffects.addPulse(startButton)
+
+	local collectionButton = makeMenuButton(frame, "[ COLLECTION ]", 0.56, C.neonBlue)
+	local auraButton = makeMenuButton(frame, "[ CHANGE AURA ]", 0.64, C.neonMagenta)
+	local hubButton = makeMenuButton(frame, "[ EXPLORE HUB ]", 0.72, C.neonPurple)
+
+	-- Bottom system text
+	local sysText = Instance.new("TextLabel")
+	sysText.Size = UDim2.new(0.4, 0, 0.025, 0)
+	sysText.Position = UDim2.new(0.3, 0, 0.82, 0)
+	sysText.BackgroundTransparency = 1
+	sysText.Text = "SYS > 10 archetypes available // v1.0"
+	sysText.TextColor3 = C.textMuted
+	sysText.TextScaled = true
+	sysText.Font = Enum.Font.Code
+	sysText.ZIndex = 5
+	sysText.Parent = frame
+
+	-- Corner decorative brackets
+	local function addCornerBracket(xPos: number, yPos: number, rot: number)
+		local bracket = Instance.new("TextLabel")
+		bracket.Size = UDim2.new(0, 20, 0, 20)
+		bracket.Position = UDim2.new(xPos, 0, yPos, 0)
+		bracket.BackgroundTransparency = 1
+		bracket.Text = "┌"
+		bracket.TextColor3 = C.neonCyan
+		bracket.TextScaled = true
+		bracket.Font = Enum.Font.Code
+		bracket.Rotation = rot
+		bracket.TextTransparency = 0.5
+		bracket.ZIndex = 3
+		bracket.Parent = frame
+	end
+
+	addCornerBracket(0.03, 0.03, 0)
+	addCornerBracket(0.95, 0.03, 90)
+	addCornerBracket(0.03, 0.95, 270)
+	addCornerBracket(0.95, 0.95, 180)
 
 	startButton.MouseButton1Click:Connect(function()
 		onStartQuiz()
 	end)
 
 	collectionButton.MouseButton1Click:Connect(function()
-		showCollectionScreen(true) -- true = came from welcome, show back button
+		showCollectionScreen(true)
+	end)
+
+	auraButton.MouseButton1Click:Connect(function()
+		showAuraSelect()
+	end)
+
+	hubButton.MouseButton1Click:Connect(function()
+		enterHub()
 	end)
 end
 
@@ -145,6 +283,7 @@ function onStartQuiz()
 	local order = startQuizRemote:InvokeServer()
 	currentQuizOrder = order
 	currentQuizIndex = 1
+	InterludePlayer.resetSession()
 	QuizUI.build(screenGui)
 	showScreen("quiz")
 	showNextQuestion()
@@ -176,6 +315,16 @@ function onAnswerSelected(answerIndex: number)
 	else
 		showNextQuestion()
 	end
+end
+
+function showAuraSelect()
+	local loadRemote = Remotes.get("LoadPlayerData") :: RemoteFunction
+	local data = loadRemote:InvokeServer()
+	local currentAura = data.selectedAura or data.currentArchetype or ""
+	AuraSelectUI.build(screenGui, data.unlockedArchetypes, currentAura, function()
+		showScreen("welcome")
+	end)
+	showScreen("auraselect")
 end
 
 function showCollectionScreen(fromWelcome: boolean)
@@ -218,6 +367,9 @@ function showResults(archetypeId: string)
 	end, function()
 		-- View collection
 		showCollectionScreen(false)
+	end, function()
+		-- Explore hub
+		enterHub()
 	end)
 	showScreen("results")
 end

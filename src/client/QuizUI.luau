@@ -121,30 +121,58 @@ function QuizUI.build(screenGui: ScreenGui)
 		button.Size = UDim2.new(0.38, 0, 0.14, 0)
 		button.Position = UDim2.new(if col == 1 then 0.08 else 0.54, 0, if row == 1 then 0.42 else 0.6, 0)
 		button.Text = ""
-		button.TextColor3 = style.neon
+		button.TextColor3 = Color3.fromRGB(255, 255, 255)
 		button.TextScaled = false
 		button.TextWrapped = true
 		button.TextSize = 16
 		button.Font = Enum.Font.GothamBold
 		button.TextYAlignment = Enum.TextYAlignment.Center
+		button.BackgroundColor3 = Color3.fromRGB(18, 14, 40)
+		button.BackgroundTransparency = 0
 		button.BorderSizePixel = 0
 		button.ZIndex = 3
 		button.Parent = newFrame
 
-		UIEffects.applyDarkGlass(button)
-
 		local corner = Instance.new("UICorner")
-		corner.CornerRadius = UDim.new(0, 6)
+		corner.CornerRadius = UDim.new(0, 8)
 		corner.Parent = button
+
+		-- Neon accent stripe on left edge of button
+		local stripe = Instance.new("Frame")
+		stripe.Size = UDim2.new(0, 4, 0.6, 0)
+		stripe.Position = UDim2.new(0, 0, 0.2, 0)
+		stripe.BackgroundColor3 = style.neon
+		stripe.BorderSizePixel = 0
+		stripe.ZIndex = 4
+		stripe.Parent = button
+
+		local stripeCorner = Instance.new("UICorner")
+		stripeCorner.CornerRadius = UDim.new(1, 0)
+		stripeCorner.Parent = stripe
+
+		-- Neon border
+		local btnStroke = Instance.new("UIStroke")
+		btnStroke.Color = style.neon
+		btnStroke.Thickness = 1.5
+		btnStroke.Transparency = 0.4
+		btnStroke.Parent = button
 
 		local padding = Instance.new("UIPadding")
 		padding.PaddingLeft = UDim.new(0.05, 0)
-		padding.PaddingRight = UDim.new(0.05, 0)
+		padding.PaddingRight = UDim.new(0.04, 0)
 		padding.PaddingTop = UDim.new(0.08, 0)
 		padding.PaddingBottom = UDim.new(0.08, 0)
 		padding.Parent = button
 
-		UIEffects.addNeonButton(button, style.neon)
+		-- Hover: brighten border + lighten background
+		button.MouseEnter:Connect(function()
+			TweenService:Create(btnStroke, TweenInfo.new(0.15), { Transparency = 0, Thickness = 2.5 }):Play()
+			TweenService:Create(button, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(28, 22, 55) }):Play()
+		end)
+		button.MouseLeave:Connect(function()
+			TweenService:Create(btnStroke, TweenInfo.new(0.2), { Transparency = 0.4, Thickness = 1.5 }):Play()
+			TweenService:Create(button, TweenInfo.new(0.2), { BackgroundColor3 = Color3.fromRGB(18, 14, 40) }):Play()
+		end)
 	end
 
 	-- Waiting label: neon cyan, monospace

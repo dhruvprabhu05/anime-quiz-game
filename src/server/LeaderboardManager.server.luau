@@ -69,12 +69,23 @@ local function setOverheadTag(player: Player, archetypeId: string)
 	textLabel.Parent = billboardGui
 end
 
+-- Helper to get the displayed aura for a player (selectedAura if set, otherwise currentArchetype)
+local function getDisplayedAura(player: Player): string
+	local data = DataStoreManager.getCached(player)
+	if not data then
+		return ""
+	end
+	if data.selectedAura ~= "" then
+		return data.selectedAura
+	end
+	return data.currentArchetype
+end
+
 -- When a player joins, load their archetype and register them
 Players.PlayerAdded:Connect(function(player: Player)
 	-- Wait for DataStore to load (handled by QuizServer)
 	task.wait(1)
-	local data = DataStoreManager.getCached(player)
-	local archetypeId = if data then data.currentArchetype else ""
+	local archetypeId = getDisplayedAura(player)
 
 	serverArchetypes[player.UserId] = {
 		name = player.Name,
@@ -84,8 +95,10 @@ Players.PlayerAdded:Connect(function(player: Player)
 	-- Set overhead tag when character spawns
 	if archetypeId ~= "" then
 		player.CharacterAdded:Connect(function(character)
-			task.wait(0.5) -- Wait for head to load
-			setOverheadTag(player, archetypeId)
+			task.wait(0.5)
+			-- Re-read in case aura changed
+			local currentAura = getDisplayedAura(player)
+			setOverheadTag(player, currentAura)
 		end)
 		if player.Character then
 			setOverheadTag(player, archetypeId)
@@ -101,6 +114,37 @@ resultBindable.Name = "PlayerResultEvent"
 resultBindable.Parent = game:GetService("ServerScriptService")
 
 resultBindable.Event:Connect(function(player: Player, archetypeId: string)
+	local displayAura = getDisplayedAura(player)
+
+	serverArchetypes[player.UserId] = {
+		name = player.Name,
+		archetypeId = displayAura,
+	}
+
+	setOverheadTag(player, displayAura)
+
+	player.CharacterAdded:Connect(function()
+		task.wait(0.5)
+		local currentAura = getDisplayedAura(player)
+		setOverheadTag(player, currentAura)
+	end)
+
+	broadcastLeaderboard()
+end)
+
+-- Handle aura selection from client
+local selectAuraRemote = Remotes.get("SelectAura") :: RemoteFunction
+selectAuraRemote.OnServerInvoke = function(player: Player, archetypeId: string)
+	if type(archetypeId) ~= "string" then
+		return false
+	end
+
+	local success = DataStoreManager.setSelectedAura(player, archetypeId)
+	if not success then
+		return false
+	end
+
+	-- Update server state
 	serverArchetypes[player.UserId] = {
 		name = player.Name,
 		archetypeId = archetypeId,
@@ -109,14 +153,11 @@ resultBindable.Event:Connect(function(player: Player, archetypeId: string)
 	-- Update overhead tag
 	setOverheadTag(player, archetypeId)
 
-	-- Re-set tag on future respawns
-	player.CharacterAdded:Connect(function()
-		task.wait(0.5)
-		setOverheadTag(player, archetypeId)
-	end)
-
+	-- Save and broadcast
+	DataStoreManager.save(player)
 	broadcastLeaderboard()
-end)
+	return true
+end
 
 -- Handle client requesting current leaderboard
 local requestLeaderboardRemote = Remotes.get("RequestLeaderboard") :: RemoteEvent

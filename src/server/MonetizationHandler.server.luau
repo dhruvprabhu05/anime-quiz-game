@@ -4,8 +4,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 
 -- IMPORTANT: Replace these with real IDs from Roblox Creator Dashboard
-local SKIP_5MIN_PRODUCT_ID = 0      -- Developer Product ID for "Skip 5 Minutes"
-local INSTANT_UNLOCK_GAMEPASS_ID = 0 -- GamePass ID for "Instant Unlock"
+local SKIP_5MIN_PRODUCT_ID = 1797175133 -- Developer Product ID for "Skip 5 Minutes"
+local INSTANT_UNLOCK_GAMEPASS_ID = 1797259226 -- GamePass ID for "Instant Unlock"
 
 -- Handle Developer Product purchases (timer skip)
 MarketplaceService.ProcessReceipt = function(receiptInfo)

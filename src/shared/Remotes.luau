@@ -11,12 +11,17 @@ local remoteEvents = {
 	"TimerSkipGranted",   -- Server -> Client: 5 minutes removed from timer
 	"LeaderboardUpdate",  -- Server -> Client: updated archetype list for all players
 	"RequestLeaderboard", -- Client -> Server: ask for current leaderboard state
+	"SpinPurchaseComplete", -- Server -> Client: spin purchase completed
 }
 
 local remoteFunctions = {
 	"LoadPlayerData",     -- Client -> Server: get saved collection + current archetype
 	"StartQuiz",          -- Client -> Server: get shuffled question order, returns question indices
 	"CheckGamePass",      -- Client -> Server: check if player owns Instant Unlock
+	"SelectAura",         -- Client -> Server: choose which unlocked archetype aura to display
+	"RequestSpin",        -- Client -> Server: request spin action
+	"CraftAura",          -- Client -> Server: craft aura action
+	"LoadInventory",      -- Client -> Server: load player inventory
 }
 
 function Remotes.init()

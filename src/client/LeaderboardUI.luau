@@ -24,7 +24,7 @@ function LeaderboardUI.build(screenGui: ScreenGui)
 	local toggleButton = Instance.new("TextButton")
 	toggleButton.Name = "LeaderboardToggle"
 	toggleButton.Size = UDim2.new(0, 160, 0, 36)
-	toggleButton.Position = UDim2.new(1, -170, 0, 50)
+	toggleButton.Position = UDim2.new(1, -170, 0, 8)
 	toggleButton.BackgroundColor3 = UIEffects.COLORS.bg
 	toggleButton.BackgroundTransparency = 0.2
 	toggleButton.Text = "[ LEADERBOARD ]"
@@ -49,7 +49,7 @@ function LeaderboardUI.build(screenGui: ScreenGui)
 	local newPanel = Instance.new("Frame")
 	newPanel.Name = "LeaderboardPanel"
 	newPanel.Size = UDim2.new(0.23, 0, 0.7, 0)
-	newPanel.Position = UDim2.new(0.76, 0, 0.12, 0)
+	newPanel.Position = UDim2.new(0.76, 0, 0.07, 0)
 	newPanel.BackgroundColor3 = UIEffects.COLORS.bgPanel
 	newPanel.BorderSizePixel = 0
 	newPanel.Visible = false

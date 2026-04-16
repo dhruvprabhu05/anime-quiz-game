@@ -173,65 +173,83 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 	watermark.ZIndex = 4
 	watermark.Parent = card
 
-	-- RETAKE button: dark glass + neon cyan stroke
+	-- RETAKE button
 	local retakeButton = Instance.new("TextButton")
 	retakeButton.Name = "RetakeButton"
-	retakeButton.Size = UDim2.new(0.18, 0, 0.06, 0)
-	retakeButton.Position = UDim2.new(0.08, 0, 0.84, 0)
-	retakeButton.BackgroundTransparency = 1
-	retakeButton.Text = "RETAKE QUIZ"
+	retakeButton.Size = UDim2.new(0.2, 0, 0.065, 0)
+	retakeButton.Position = UDim2.new(0.06, 0, 0.84, 0)
+	retakeButton.BackgroundColor3 = Color3.fromRGB(0, 30, 40)
+	retakeButton.BackgroundTransparency = 0
+	retakeButton.Text = "[ RETAKE QUIZ ]"
 	retakeButton.TextColor3 = C.neonCyan
 	retakeButton.TextScaled = true
-	retakeButton.Font = Enum.Font.GothamBold
-	retakeButton.ZIndex = 3
+	retakeButton.Font = Enum.Font.RobotoMono
+	retakeButton.ZIndex = 5
 	retakeButton.Parent = frame
 
-	UIEffects.applyDarkGlass(retakeButton)
-	UIEffects.addNeonButton(retakeButton, C.neonCyan)
-
 	local retakeCorner = Instance.new("UICorner")
-	retakeCorner.CornerRadius = UDim.new(0, 12)
+	retakeCorner.CornerRadius = UDim.new(0, 8)
 	retakeCorner.Parent = retakeButton
 
-	-- COLLECTION button: dark glass + neon blue stroke
+	local retakeStroke = Instance.new("UIStroke")
+	retakeStroke.Color = C.neonCyan
+	retakeStroke.Thickness = 2
+	retakeStroke.Transparency = 0.2
+	retakeStroke.Parent = retakeButton
+
+	UIEffects.addNeonButton(retakeButton, C.neonCyan)
+
+	-- COLLECTION button
 	local collectionButton = Instance.new("TextButton")
 	collectionButton.Name = "CollectionButton"
-	collectionButton.Size = UDim2.new(0.18, 0, 0.06, 0)
-	collectionButton.Position = UDim2.new(0.41, 0, 0.84, 0)
-	collectionButton.BackgroundTransparency = 1
-	collectionButton.Text = "COLLECTION"
+	collectionButton.Size = UDim2.new(0.2, 0, 0.065, 0)
+	collectionButton.Position = UDim2.new(0.4, 0, 0.84, 0)
+	collectionButton.BackgroundColor3 = Color3.fromRGB(10, 10, 40)
+	collectionButton.BackgroundTransparency = 0
+	collectionButton.Text = "[ COLLECTION ]"
 	collectionButton.TextColor3 = C.neonBlue
 	collectionButton.TextScaled = true
-	collectionButton.Font = Enum.Font.GothamBold
-	collectionButton.ZIndex = 3
+	collectionButton.Font = Enum.Font.RobotoMono
+	collectionButton.ZIndex = 5
 	collectionButton.Parent = frame
 
-	UIEffects.applyDarkGlass(collectionButton)
-	UIEffects.addNeonButton(collectionButton, C.neonBlue)
-
 	local collectionCorner = Instance.new("UICorner")
-	collectionCorner.CornerRadius = UDim.new(0, 12)
+	collectionCorner.CornerRadius = UDim.new(0, 8)
 	collectionCorner.Parent = collectionButton
 
-	-- EXPLORE HUB button: dark glass + neon magenta stroke
+	local collectionStroke = Instance.new("UIStroke")
+	collectionStroke.Color = C.neonBlue
+	collectionStroke.Thickness = 2
+	collectionStroke.Transparency = 0.2
+	collectionStroke.Parent = collectionButton
+
+	UIEffects.addNeonButton(collectionButton, C.neonBlue)
+
+	-- EXPLORE HUB button
 	local hubButton = Instance.new("TextButton")
 	hubButton.Name = "HubButton"
-	hubButton.Size = UDim2.new(0.18, 0, 0.06, 0)
+	hubButton.Size = UDim2.new(0.2, 0, 0.065, 0)
 	hubButton.Position = UDim2.new(0.74, 0, 0.84, 0)
-	hubButton.BackgroundTransparency = 1
-	hubButton.Text = "EXPLORE HUB"
+	hubButton.BackgroundColor3 = Color3.fromRGB(30, 5, 25)
+	hubButton.BackgroundTransparency = 0
+	hubButton.Text = "[ EXPLORE HUB ]"
 	hubButton.TextColor3 = C.neonMagenta
 	hubButton.TextScaled = true
-	hubButton.Font = Enum.Font.GothamBold
-	hubButton.ZIndex = 3
+	hubButton.Font = Enum.Font.RobotoMono
+	hubButton.ZIndex = 5
 	hubButton.Parent = frame
 
-	UIEffects.applyDarkGlass(hubButton)
-	UIEffects.addNeonButton(hubButton, C.neonMagenta)
-
 	local hubCorner = Instance.new("UICorner")
-	hubCorner.CornerRadius = UDim.new(0, 12)
+	hubCorner.CornerRadius = UDim.new(0, 8)
 	hubCorner.Parent = hubButton
+
+	local hubStroke = Instance.new("UIStroke")
+	hubStroke.Color = C.neonMagenta
+	hubStroke.Thickness = 2
+	hubStroke.Transparency = 0.2
+	hubStroke.Parent = hubButton
+
+	UIEffects.addNeonButton(hubButton, C.neonMagenta)
 
 	-- Wire up callbacks
 	retakeButton.MouseButton1Click:Connect(function()
