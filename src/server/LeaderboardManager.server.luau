@@ -8,12 +8,13 @@ local DataStoreManager = require(script.Parent:WaitForChild("DataStoreManager"))
 -- Tracks current archetype for every player in the server
 local serverArchetypes: { [number]: { name: string, archetypeId: string } } = {}
 
-local function getLeaderboardData(): { { name: string, archetypeId: string, archetypeName: string } }
+local function getLeaderboardData(): { { userId: number, name: string, archetypeId: string, archetypeName: string } }
 	local entries = {}
-	for _, entry in serverArchetypes do
+	for userId, entry in serverArchetypes do
 		if entry.archetypeId ~= "" then
 			local archetype = Archetypes.getById(entry.archetypeId)
 			table.insert(entries, {
+				userId = userId,
 				name = entry.name,
 				archetypeId = entry.archetypeId,
 				archetypeName = if archetype then archetype.name else "Unknown",
