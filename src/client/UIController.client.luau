@@ -21,7 +21,8 @@ local ResultsUI = require(script.Parent:WaitForChild("ResultsUI"))
 local CollectionUI = require(script.Parent:WaitForChild("CollectionUI"))
 local LeaderboardUI = require(script.Parent:WaitForChild("LeaderboardUI"))
 local InterludePlayer = require(script.Parent:WaitForChild("InterludePlayer"))
-local AuraSelectUI = require(script.Parent:WaitForChild("AuraSelectUI"))
+local SpinWheelUI = require(script.Parent:WaitForChild("SpinWheelUI"))
+local InventoryUI = require(script.Parent:WaitForChild("InventoryUI"))
 
 -- State
 local currentScreen: string = "none"
@@ -112,8 +113,13 @@ local function showScreen(name: string)
 		if frame then
 			frame.Visible = true
 		end
-	elseif name == "auraselect" then
-		local frame = screenGui:FindFirstChild("AuraSelectFrame")
+	elseif name == "spinwheel" then
+		local frame = screenGui:FindFirstChild("SpinWheelFrame")
+		if frame then
+			frame.Visible = true
+		end
+	elseif name == "inventory" then
+		local frame = screenGui:FindFirstChild("InventoryFrame")
 		if frame then
 			frame.Visible = true
 		end
@@ -219,9 +225,10 @@ local function buildWelcomeScreen()
 	startButton.Font = Enum.Font.GothamBlack
 	UIEffects.addPulse(startButton)
 
-	local collectionButton = makeMenuButton(frame, "[ COLLECTION ]", 0.56, C.neonBlue)
-	local auraButton = makeMenuButton(frame, "[ CHANGE AURA ]", 0.64, C.neonMagenta)
-	local hubButton = makeMenuButton(frame, "[ EXPLORE HUB ]", 0.72, C.neonPurple)
+	local spinButton = makeMenuButton(frame, "[ SPIN WHEEL ]", 0.56, C.neonGold)
+	local inventoryButton = makeMenuButton(frame, "[ INVENTORY ]", 0.64, C.neonMagenta)
+	local collectionButton = makeMenuButton(frame, "[ COLLECTION ]", 0.72, C.neonBlue)
+	local hubButton = makeMenuButton(frame, "[ EXPLORE HUB ]", 0.80, C.neonPurple)
 
 	-- Bottom system text
 	local sysText = Instance.new("TextLabel")
@@ -260,12 +267,16 @@ local function buildWelcomeScreen()
 		onStartQuiz()
 	end)
 
-	collectionButton.MouseButton1Click:Connect(function()
-		showCollectionScreen(true)
+	spinButton.MouseButton1Click:Connect(function()
+		showSpinWheel()
 	end)
 
-	auraButton.MouseButton1Click:Connect(function()
-		showAuraSelect()
+	inventoryButton.MouseButton1Click:Connect(function()
+		showInventory()
+	end)
+
+	collectionButton.MouseButton1Click:Connect(function()
+		showCollectionScreen(true)
 	end)
 
 	hubButton.MouseButton1Click:Connect(function()
@@ -317,14 +328,32 @@ function onAnswerSelected(answerIndex: number)
 	end
 end
 
-function showAuraSelect()
-	local loadRemote = Remotes.get("LoadPlayerData") :: RemoteFunction
+function showInventory()
+	local loadRemote = Remotes.get("LoadInventory") :: RemoteFunction
 	local data = loadRemote:InvokeServer()
-	local currentAura = data.selectedAura or data.currentArchetype or ""
-	AuraSelectUI.build(screenGui, data.unlockedArchetypes, currentAura, function()
+	InventoryUI.build(screenGui, data, function()
 		showScreen("welcome")
 	end)
-	showScreen("auraselect")
+	showScreen("inventory")
+end
+
+function showSpinWheel()
+	local loadRemote = Remotes.get("LoadInventory") :: RemoteFunction
+	local data = loadRemote:InvokeServer()
+
+	local idsFolder = ReplicatedStorage:WaitForChild("MonetizationIds")
+	local spinData = {
+		freeSpinsAvailable = data.freeSpinsAvailable,
+		buy1SpinProductId = idsFolder:WaitForChild("Buy1SpinProductId").Value,
+		buy5SpinsProductId = idsFolder:WaitForChild("Buy5SpinsProductId").Value,
+	}
+
+	SpinWheelUI.build(screenGui, spinData, function()
+		showScreen("welcome")
+	end, function()
+		showInventory()
+	end)
+	showScreen("spinwheel")
 end
 
 function showCollectionScreen(fromWelcome: boolean)
@@ -370,6 +399,9 @@ function showResults(archetypeId: string)
 	end, function()
 		-- Explore hub
 		enterHub()
+	end, function()
+		-- Spin wheel
+		showSpinWheel()
 	end)
 	showScreen("results")
 end
