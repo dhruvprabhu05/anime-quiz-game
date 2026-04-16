@@ -3,9 +3,32 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local QuestionBank = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("QuestionBank"))
 local Archetypes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Archetypes"))
+local DataStoreManager = require(script.Parent:WaitForChild("DataStoreManager"))
 
 -- Initialize remotes (only one server script should call this)
 Remotes.init()
+
+-- Load player data on join
+game:GetService("Players").PlayerAdded:Connect(function(player: Player)
+	DataStoreManager.load(player)
+end)
+
+-- Load data for players already in the game (in case script loads late)
+for _, player in game:GetService("Players"):GetPlayers() do
+	task.spawn(function()
+		DataStoreManager.load(player)
+	end)
+end
+
+-- Handle LoadPlayerData request from client
+local loadPlayerDataRemote = Remotes.get("LoadPlayerData") :: RemoteFunction
+loadPlayerDataRemote.OnServerInvoke = function(player: Player)
+	local data = DataStoreManager.getCached(player)
+	if not data then
+		data = DataStoreManager.load(player)
+	end
+	return data
+end
 
 -- Track each player's active quiz session
 local activeSessions: { [Player]: { questionOrder: { number }, answers: { number }, expectedIndex: number } } = {}
@@ -47,6 +70,10 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 	if #session.answers == QuestionBank.getTotalQuestions() then
 		local result = calculateResult(session)
 		activeSessions[player] = nil
+
+		-- Save result to DataStore
+		DataStoreManager.setArchetype(player, result)
+		DataStoreManager.save(player)
 
 		local quizResultRemote = Remotes.get("QuizResult") :: RemoteEvent
 		quizResultRemote:FireClient(player, result)
@@ -90,4 +117,6 @@ end
 -- Clean up when a player leaves
 game:GetService("Players").PlayerRemoving:Connect(function(player: Player)
 	activeSessions[player] = nil
+	DataStoreManager.save(player)
+	DataStoreManager.clearCache(player)
 end)
