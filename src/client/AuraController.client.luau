@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 local AuraDefinitions = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AuraDefinitions"))
@@ -206,6 +207,47 @@ local function applyAura(character: Model, archetypeId: string)
 	groundGlow.LockedToPart = true
 	groundGlow:SetAttribute(AURA_TAG, true)
 	groundGlow.Parent = groundAttachment
+
+	-- === SECRET: Anime Transformation extras ===
+	if archetypeId == "anime_transformation" then
+		local head = character:FindFirstChild("Head")
+		if head then
+			local eyeGui = Instance.new("BillboardGui")
+			eyeGui.Name = "AnimeEyes"
+			eyeGui.Size = UDim2.new(1.5, 0, 0.6, 0)
+			eyeGui.StudsOffset = Vector3.new(0, 0.2, -0.6)
+			eyeGui.AlwaysOnTop = false
+			eyeGui.ZIndex = 5
+			eyeGui:SetAttribute(AURA_TAG, true)
+			eyeGui.Parent = head
+
+			local eyeLabel = Instance.new("TextLabel")
+			eyeLabel.Size = UDim2.new(1, 0, 1, 0)
+			eyeLabel.BackgroundTransparency = 1
+			eyeLabel.Text = "✦  ✦"
+			eyeLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+			eyeLabel.TextScaled = true
+			eyeLabel.Font = Enum.Font.GothamBlack
+			eyeLabel.Parent = eyeGui
+
+			task.spawn(function()
+				local colors = {
+					Color3.fromRGB(255, 50, 50),
+					Color3.fromRGB(50, 200, 255),
+					Color3.fromRGB(255, 200, 50),
+					Color3.fromRGB(200, 50, 255),
+				}
+				local idx = 1
+				while eyeLabel and eyeLabel.Parent do
+					idx = idx % #colors + 1
+					TweenService:Create(eyeLabel, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {
+						TextColor3 = colors[idx],
+					}):Play()
+					task.wait(0.8)
+				end
+			end)
+		end
+	end
 end
 
 local function applyAuraToPlayer(userId: number)
