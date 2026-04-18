@@ -1,3 +1,4 @@
+local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -5,6 +6,8 @@ local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("R
 local QuestionBank = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("QuestionBank"))
 local Archetypes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Archetypes"))
 local DataStoreManager = require(script.Parent:WaitForChild("DataStoreManager"))
+
+local INSTANT_UNLOCK_GAMEPASS_ID = 1797259226
 
 -- Initialize remotes (only one server script should call this)
 Remotes.init()
@@ -32,16 +35,53 @@ loadPlayerDataRemote.OnServerInvoke = function(player: Player)
 end
 
 -- Track each player's active quiz session
-local activeSessions: { [Player]: { questionOrder: { number }, answers: { number }, expectedIndex: number } } = {}
+local activeSessions: { [Player]: { questionOrder: { number }, answers: { number }, expectedIndex: number, lastAnswerTime: number } } = {}
+
+-- Minimum seconds between answers to prevent spam
+local MIN_ANSWER_INTERVAL = 0.8
+
+-- Server-side quiz cooldown tracking
+local quizCompletionTimes: { [number]: number } = {}
+local QUIZ_COOLDOWN = 15 * 60 -- 15 minutes
+
+local function getQuizCooldownRemaining(player: Player): number
+	local completionTime = quizCompletionTimes[player.UserId]
+	if not completionTime then
+		return 0
+	end
+	local remaining = QUIZ_COOLDOWN - (tick() - completionTime)
+	return if remaining > 0 then remaining else 0
+end
 
 -- Handle StartQuiz: create a new session with shuffled question order
 local startQuizRemote = Remotes.get("StartQuiz") :: RemoteFunction
 startQuizRemote.OnServerInvoke = function(player: Player)
+	-- Prevent starting a new quiz while one is active
+	if activeSessions[player] then
+		return nil
+	end
+
+	-- Enforce server-side cooldown (prevents client-side timer bypass)
+	-- GamePass owners bypass cooldown entirely
+	if getQuizCooldownRemaining(player) > 0 then
+		local ownsPass = false
+		local success, result = pcall(function()
+			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, INSTANT_UNLOCK_GAMEPASS_ID)
+		end)
+		if success then
+			ownsPass = result
+		end
+		if not ownsPass then
+			return nil
+		end
+	end
+
 	local order = QuestionBank.getShuffledIndices()
 	activeSessions[player] = {
 		questionOrder = order,
 		answers = {},
 		expectedIndex = 1,
+		lastAnswerTime = tick(),
 	}
 	return order
 end
@@ -64,6 +104,13 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 		return
 	end
 
+	-- Rate limit: reject answers submitted too fast
+	local now = tick()
+	if now - session.lastAnswerTime < MIN_ANSWER_INTERVAL then
+		return
+	end
+	session.lastAnswerTime = now
+
 	table.insert(session.answers, answerIndex)
 	session.expectedIndex += 1
 
@@ -75,6 +122,9 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 		-- Save result to DataStore
 		DataStoreManager.setArchetype(player, result)
 		DataStoreManager.save(player)
+
+		-- Record quiz completion time for cooldown enforcement
+		quizCompletionTimes[player.UserId] = tick()
 
 		-- Notify leaderboard manager
 		local resultBindable = ServerScriptService:WaitForChild("PlayerResultEvent")
@@ -119,9 +169,29 @@ function calculateResult(session: { questionOrder: { number }, answers: { number
 	return bestId
 end
 
+-- Client can check remaining cooldown
+local checkCooldownRemote = Remotes.get("CheckQuizCooldown") :: RemoteFunction
+checkCooldownRemote.OnServerInvoke = function(player: Player)
+	return getQuizCooldownRemaining(player)
+end
+
+-- Listen for timer skip purchases from MonetizationHandler
+local timerSkipBindable = Instance.new("BindableEvent")
+timerSkipBindable.Name = "QuizTimerSkipEvent"
+timerSkipBindable.Parent = ServerScriptService
+
+timerSkipBindable.Event:Connect(function(player: Player)
+	-- Subtract 5 minutes from cooldown (shift completion time back by 300s)
+	local completionTime = quizCompletionTimes[player.UserId]
+	if completionTime then
+		quizCompletionTimes[player.UserId] = completionTime - 300
+	end
+end)
+
 -- Clean up when a player leaves
 game:GetService("Players").PlayerRemoving:Connect(function(player: Player)
 	activeSessions[player] = nil
+	quizCompletionTimes[player.UserId] = nil
 	DataStoreManager.save(player)
 	DataStoreManager.clearCache(player)
 end)

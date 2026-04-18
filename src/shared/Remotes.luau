@@ -18,8 +18,10 @@ local remoteFunctions = {
 	"LoadPlayerData",     -- Client -> Server: get saved collection + current archetype
 	"StartQuiz",          -- Client -> Server: get shuffled question order, returns question indices
 	"CheckGamePass",      -- Client -> Server: check if player owns Instant Unlock
+	"CheckQuizCooldown",  -- Client -> Server: get remaining quiz cooldown seconds
 	"SelectAura",         -- Client -> Server: choose which unlocked archetype aura to display
-	"RequestSpin",        -- Client -> Server: request spin action
+	"RequestSpin",        -- Client -> Server: request single spin
+	"RequestBulkSpin",    -- Client -> Server: request 5 spins at once
 	"CraftAura",          -- Client -> Server: craft aura action
 	"LoadInventory",      -- Client -> Server: load player inventory
 }

@@ -159,9 +159,18 @@ selectAuraRemote.OnServerInvoke = function(player: Player, archetypeId: string)
 	return true
 end
 
--- Handle client requesting current leaderboard
+-- Handle client requesting current leaderboard (rate limited)
+local lastLeaderboardRequest: { [number]: number } = {}
+local LEADERBOARD_COOLDOWN = 2
+
 local requestLeaderboardRemote = Remotes.get("RequestLeaderboard") :: RemoteEvent
 requestLeaderboardRemote.OnServerEvent:Connect(function(player: Player)
+	local now = tick()
+	if (lastLeaderboardRequest[player.UserId] or 0) > now - LEADERBOARD_COOLDOWN then
+		return
+	end
+	lastLeaderboardRequest[player.UserId] = now
+
 	local data = getLeaderboardData()
 	local leaderboardRemote = Remotes.get("LeaderboardUpdate") :: RemoteEvent
 	leaderboardRemote:FireClient(player, data)
@@ -170,5 +179,6 @@ end)
 -- Clean up on leave
 Players.PlayerRemoving:Connect(function(player: Player)
 	serverArchetypes[player.UserId] = nil
+	lastLeaderboardRequest[player.UserId] = nil
 	broadcastLeaderboard()
 end)

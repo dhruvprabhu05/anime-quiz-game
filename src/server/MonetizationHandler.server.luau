@@ -1,35 +1,40 @@
 local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Players = game:GetService("Players")
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 
 -- IMPORTANT: Replace these with real IDs from Roblox Creator Dashboard
-local SKIP_5MIN_PRODUCT_ID = 1797175133 -- Developer Product ID for "Skip 5 Minutes"
+local SKIP_5MIN_PRODUCT_ID = 3576830852 -- Developer Product ID for "Skip 5 Minutes"
 local INSTANT_UNLOCK_GAMEPASS_ID = 1797259226 -- GamePass ID for "Instant Unlock"
-local BUY_1_SPIN_PRODUCT_ID = 0  -- Developer Product: 1 spin for 10 Robux
-local BUY_5_SPINS_PRODUCT_ID = 0 -- Developer Product: 5 spins for 40 Robux
+local BUY_1_SPIN_PRODUCT_ID = 3576829958  -- Developer Product: 1 spin for 10 Robux
+local BUY_5_SPINS_PRODUCT_ID = 3576830068 -- Developer Product: 5 spins for 40 Robux
 
 -- Handle Developer Product purchases (timer skip)
 MarketplaceService.ProcessReceipt = function(receiptInfo)
-	local player = game:GetService("Players"):GetPlayerByUserId(receiptInfo.PlayerId)
+	local player = Players:GetPlayerByUserId(receiptInfo.PlayerId)
 	if not player then
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 
 	if receiptInfo.ProductId == SKIP_5MIN_PRODUCT_ID then
+		-- Notify QuizServer to clear server-side cooldown
+		local timerSkipBindable = ServerScriptService:WaitForChild("QuizTimerSkipEvent")
+		timerSkipBindable:Fire(player)
 		local timerSkipRemote = Remotes.get("TimerSkipGranted") :: RemoteEvent
 		timerSkipRemote:FireClient(player, 300) -- 300 seconds = 5 minutes
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 
 	if receiptInfo.ProductId == BUY_1_SPIN_PRODUCT_ID then
-		local spinBindable = game:GetService("ServerScriptService"):WaitForChild("SpinPurchaseEvent")
+		local spinBindable = ServerScriptService:WaitForChild("SpinPurchaseEvent")
 		spinBindable:Fire(player, 1)
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end
 
 	if receiptInfo.ProductId == BUY_5_SPINS_PRODUCT_ID then
-		local spinBindable = game:GetService("ServerScriptService"):WaitForChild("SpinPurchaseEvent")
+		local spinBindable = ServerScriptService:WaitForChild("SpinPurchaseEvent")
 		spinBindable:Fire(player, 5)
 		return Enum.ProductPurchaseDecision.PurchaseGranted
 	end

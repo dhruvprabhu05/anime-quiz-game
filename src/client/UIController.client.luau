@@ -19,8 +19,8 @@ local QuizUI = require(script.Parent:WaitForChild("QuizUI"))
 local TimerUI = require(script.Parent:WaitForChild("TimerUI"))
 local ResultsUI = require(script.Parent:WaitForChild("ResultsUI"))
 local CollectionUI = require(script.Parent:WaitForChild("CollectionUI"))
-local LeaderboardUI = require(script.Parent:WaitForChild("LeaderboardUI"))
 local InterludePlayer = require(script.Parent:WaitForChild("InterludePlayer"))
+local SettingsUI = require(script.Parent:WaitForChild("SettingsUI"))
 local SpinWheelUI = require(script.Parent:WaitForChild("SpinWheelUI"))
 local InventoryUI = require(script.Parent:WaitForChild("InventoryUI"))
 
@@ -46,10 +46,10 @@ local openMenuButton = Instance.new("TextButton")
 openMenuButton.Name = "OpenMenuButton"
 openMenuButton.Size = UDim2.new(0, 150, 0, 38)
 openMenuButton.Position = UDim2.new(0.5, -75, 1, -52)
-openMenuButton.BackgroundColor3 = Color3.fromRGB(8, 6, 20)
-openMenuButton.BackgroundTransparency = 0.2
+openMenuButton.BackgroundColor3 = Color3.fromRGB(0, 35, 45)
+openMenuButton.BackgroundTransparency = 0
 openMenuButton.Text = "[ OPEN MENU ]"
-openMenuButton.TextColor3 = C.neonCyan
+openMenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 openMenuButton.TextScaled = true
 openMenuButton.Font = Enum.Font.RobotoMono
 openMenuButton.ZIndex = 20
@@ -135,10 +135,10 @@ local function makeMenuButton(parent: Frame, text: string, yPos: number, neonCol
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.3, 0, 0.06, 0)
 	btn.Position = UDim2.new(0.35, 0, yPos, 0)
-	btn.BackgroundColor3 = C.bgCard
-	btn.BackgroundTransparency = 0.3
+	btn.BackgroundColor3 = Color3.fromRGB(18, 14, 38)
+	btn.BackgroundTransparency = 0
 	btn.Text = text
-	btn.TextColor3 = neonColor
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	btn.TextScaled = true
 	btn.Font = Enum.Font.GothamBold
 	btn.ZIndex = 5
@@ -147,6 +147,12 @@ local function makeMenuButton(parent: Frame, text: string, yPos: number, neonCol
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 6)
 	corner.Parent = btn
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = neonColor
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.3
+	stroke.Parent = btn
 
 	UIEffects.addNeonButton(btn, neonColor)
 	return btn
@@ -162,7 +168,6 @@ local function buildWelcomeScreen()
 
 	UIEffects.addGradient(frame, Color3.fromRGB(5, 2, 18), Color3.fromRGB(8, 5, 25), 170)
 	UIEffects.addDigitalParticles(frame, 20)
-	UIEffects.addScanLine(frame)
 
 	-- Main title
 	local title = Instance.new("TextLabel")
@@ -233,7 +238,7 @@ local function buildWelcomeScreen()
 	-- Bottom system text
 	local sysText = Instance.new("TextLabel")
 	sysText.Size = UDim2.new(0.4, 0, 0.025, 0)
-	sysText.Position = UDim2.new(0.3, 0, 0.82, 0)
+	sysText.Position = UDim2.new(0.3, 0, 0.88, 0)
 	sysText.BackgroundTransparency = 1
 	sysText.Text = "SYS > 10 archetypes available // v1.0"
 	sysText.TextColor3 = C.textMuted
@@ -287,11 +292,16 @@ end
 -- Flow handlers
 local currentQuizOrder: { number } = {}
 local currentQuizIndex: number = 1
-local pendingResult: string = ""
 
 function onStartQuiz()
 	local startQuizRemote = Remotes.get("StartQuiz") :: RemoteFunction
 	local order = startQuizRemote:InvokeServer()
+
+	if not order then
+		-- Server rejected: cooldown active or session already running
+		return
+	end
+
 	currentQuizOrder = order
 	currentQuizIndex = 1
 	InterludePlayer.resetSession()
@@ -372,8 +382,6 @@ end
 -- Listen for quiz result from server
 local quizResultRemote = Remotes.get("QuizResult") :: RemoteEvent
 quizResultRemote.OnClientEvent:Connect(function(archetypeId: string)
-	pendingResult = archetypeId
-
 	-- Check GamePass — if owned, skip timer
 	local checkGamePassRemote = Remotes.get("CheckGamePass") :: RemoteFunction
 	local ownsGamePass = checkGamePassRemote:InvokeServer()
@@ -412,18 +420,43 @@ timerSkipRemote.OnClientEvent:Connect(function(secondsRemoved: number)
 	TimerUI.onSkipGranted(secondsRemoved)
 end)
 
--- Initialize leaderboard (always visible as toggleable panel)
-LeaderboardUI.build(screenGui)
+-- Settings button (top right, always visible)
+local settingsBtn = Instance.new("TextButton")
+settingsBtn.Name = "SettingsButton"
+settingsBtn.Size = UDim2.new(0, 40, 0, 40)
+settingsBtn.Position = UDim2.new(1, -50, 0, 8)
+settingsBtn.BackgroundColor3 = Color3.fromRGB(0, 30, 40)
+settingsBtn.BackgroundTransparency = 0
+settingsBtn.Text = "⚙"
+settingsBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+settingsBtn.TextScaled = true
+settingsBtn.Font = Enum.Font.GothamBold
+settingsBtn.ZIndex = 25
+settingsBtn.Parent = screenGui
 
--- Listen for leaderboard updates
-local leaderboardUpdateRemote = Remotes.get("LeaderboardUpdate") :: RemoteEvent
-leaderboardUpdateRemote.OnClientEvent:Connect(function(data)
-	LeaderboardUI.update(data)
+local settingsBtnCorner = Instance.new("UICorner")
+settingsBtnCorner.CornerRadius = UDim.new(0, 8)
+settingsBtnCorner.Parent = settingsBtn
+
+local settingsBtnStroke = Instance.new("UIStroke")
+settingsBtnStroke.Color = C.neonPurple
+settingsBtnStroke.Thickness = 1.5
+settingsBtnStroke.Transparency = 0.3
+settingsBtnStroke.Parent = settingsBtn
+
+settingsBtn.MouseButton1Click:Connect(function()
+	local existing = screenGui:FindFirstChild("SettingsFrame")
+	if existing then
+		existing:Destroy()
+	else
+		SettingsUI.build(screenGui, function()
+			local settingsFrame = screenGui:FindFirstChild("SettingsFrame")
+			if settingsFrame then
+				settingsFrame:Destroy()
+			end
+		end)
+	end
 end)
-
--- Request initial leaderboard data
-local requestLeaderboardRemote = Remotes.get("RequestLeaderboard") :: RemoteEvent
-requestLeaderboardRemote:FireServer()
 
 -- Build and show welcome screen
 buildWelcomeScreen()
