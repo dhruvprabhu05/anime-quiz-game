@@ -76,7 +76,6 @@ function TimerUI.build(screenGui: ScreenGui, onComplete: () -> ())
 
 	UIEffects.applyDarkGlass(timerCard)
 	UIEffects.addNeonPulse(timerCard, C.neonGold, 3)
-	UIEffects.addScanLine(timerCard)
 
 	-- Timer label — monospace, neon gold
 	local timerLabel = Instance.new("TextLabel")
@@ -117,7 +116,7 @@ function TimerUI.build(screenGui: ScreenGui, onComplete: () -> ())
 	skipRobuxButton.Size = UDim2.new(0.35, 0, 0.07, 0)
 	skipRobuxButton.Position = UDim2.new(0.325, 0, 0.51, 0)
 	skipRobuxButton.Text = "Skip 5 Minutes (5 Robux)"
-	skipRobuxButton.TextColor3 = C.textPrimary
+	skipRobuxButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	skipRobuxButton.TextScaled = true
 	skipRobuxButton.Font = Enum.Font.GothamBold
 	skipRobuxButton.BorderSizePixel = 0
@@ -137,7 +136,7 @@ function TimerUI.build(screenGui: ScreenGui, onComplete: () -> ())
 	gamePassButton.Size = UDim2.new(0.35, 0, 0.07, 0)
 	gamePassButton.Position = UDim2.new(0.325, 0, 0.61, 0)
 	gamePassButton.Text = "Instant Unlock — Never Wait Again (49 R$)"
-	gamePassButton.TextColor3 = C.neonGold
+	gamePassButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 	gamePassButton.TextScaled = true
 	gamePassButton.Font = Enum.Font.GothamBlack
 	gamePassButton.BorderSizePixel = 0

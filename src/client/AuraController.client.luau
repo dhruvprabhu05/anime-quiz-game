@@ -217,7 +217,6 @@ local function applyAura(character: Model, archetypeId: string)
 			eyeGui.Size = UDim2.new(1.5, 0, 0.6, 0)
 			eyeGui.StudsOffset = Vector3.new(0, 0.2, -0.6)
 			eyeGui.AlwaysOnTop = false
-			eyeGui.ZIndex = 5
 			eyeGui:SetAttribute(AURA_TAG, true)
 			eyeGui.Parent = head
 

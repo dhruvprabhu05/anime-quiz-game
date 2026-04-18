@@ -44,14 +44,13 @@ local function build(
 
 	UIEffects.addGradient(frame, Color3.fromRGB(8, 4, 20), Color3.fromRGB(4, 10, 25), 160)
 	UIEffects.addDigitalParticles(frame, 12)
-	UIEffects.addScanLine(frame)
 
 	-- --------------------------------------------------------
 	-- Header row: title + shard balance
 	-- --------------------------------------------------------
 	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(0.42, 0, 0.065, 0)
-	title.Position = UDim2.new(0.08, 0, 0.025, 0)
+	title.Size = UDim2.new(0.35, 0, 0.055, 0)
+	title.Position = UDim2.new(0.2, 0, 0.06, 0)
 	title.BackgroundTransparency = 1
 	title.Text = "AURA INVENTORY"
 	title.TextColor3 = C.neonMagenta
@@ -64,8 +63,8 @@ local function build(
 	UIEffects.addGlow(title, C.neonMagenta, 1)
 
 	local shardLabel = Instance.new("TextLabel")
-	shardLabel.Size = UDim2.new(0.28, 0, 0.05, 0)
-	shardLabel.Position = UDim2.new(0.64, 0, 0.033, 0)
+	shardLabel.Size = UDim2.new(0.2, 0, 0.045, 0)
+	shardLabel.Position = UDim2.new(0.55, 0, 0.065, 0)
 	shardLabel.BackgroundTransparency = 1
 	shardLabel.Text = "SHARDS: " .. tostring(inventoryData.shards)
 	shardLabel.TextColor3 = C.neonGold
@@ -78,7 +77,7 @@ local function build(
 	UIEffects.addGlow(shardLabel, C.neonGold, 1)
 
 	-- Divider below header
-	UIEffects.addDivider(frame, 0.1, C.neonMagenta)
+	UIEffects.addDivider(frame, 0.125, C.neonMagenta)
 
 	-- --------------------------------------------------------
 	-- Grid: 2 columns, all 11 aura IDs from AuraRarities
@@ -90,7 +89,7 @@ local function build(
 	local CARD_H = 0.126
 	local COL1_X = 0.05
 	local COL2_X = 0.53
-	local GRID_TOP = 0.13
+	local GRID_TOP = 0.15
 	local ROW_GAP = 0.135
 
 	for i, auraId in allAuraIds do
@@ -361,15 +360,15 @@ local function build(
 	-- --------------------------------------------------------
 	local backButton = Instance.new("TextButton")
 	backButton.Name = "BackButton"
-	backButton.Size = UDim2.new(0.14, 0, 0.055, 0)
-	backButton.Position = UDim2.new(0.43, 0, 0.935, 0)
+	backButton.Size = UDim2.new(0.16, 0, 0.06, 0)
+	backButton.Position = UDim2.new(0.42, 0, 0.93, 0)
 	backButton.BorderSizePixel = 0
 	backButton.Text = "[ BACK ]"
-	backButton.TextColor3 = C.neonCyan
-	backButton.BackgroundColor3 = Color3.fromRGB(0, 30, 40)
-	backButton.BackgroundTransparency = 0.1
+	backButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+	backButton.BackgroundColor3 = Color3.fromRGB(0, 35, 45)
+	backButton.BackgroundTransparency = 0
 	backButton.TextScaled = true
-	backButton.Font = Enum.Font.RobotoMono
+	backButton.Font = Enum.Font.GothamBold
 	backButton.AutoButtonColor = false
 	backButton.ZIndex = 10
 	backButton.Parent = frame
@@ -377,6 +376,12 @@ local function build(
 	local backCorner = Instance.new("UICorner")
 	backCorner.CornerRadius = UDim.new(0, 8)
 	backCorner.Parent = backButton
+
+	local backStroke = Instance.new("UIStroke")
+	backStroke.Color = C.neonCyan
+	backStroke.Thickness = 2
+	backStroke.Transparency = 0.2
+	backStroke.Parent = backButton
 
 	UIEffects.addNeonButton(backButton, C.neonCyan)
 

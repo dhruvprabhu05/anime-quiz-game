@@ -149,14 +149,6 @@ function DataStoreManager.addShards(player: Player, amount: number)
 	data.shards = (data.shards or 0) + amount
 end
 
-function DataStoreManager.getShards(player: Player): number
-	local data = cache[player.UserId]
-	if not data then
-		return 0
-	end
-	return data.shards or 0
-end
-
 function DataStoreManager.spendShards(player: Player, amount: number): boolean
 	local data = cache[player.UserId]
 	if not data then

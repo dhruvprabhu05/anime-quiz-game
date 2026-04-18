@@ -7,8 +7,8 @@ local UIEffects = {}
 -- ============================================================
 UIEffects.COLORS = {
 	bg = Color3.fromRGB(5, 3, 15),
-	bgCard = Color3.fromRGB(10, 8, 22),
-	bgPanel = Color3.fromRGB(12, 10, 28),
+	bgCard = Color3.fromRGB(18, 15, 35),
+	bgPanel = Color3.fromRGB(20, 16, 40),
 
 	neonCyan = Color3.fromRGB(0, 240, 255),
 	neonMagenta = Color3.fromRGB(255, 0, 200),
@@ -17,8 +17,8 @@ UIEffects.COLORS = {
 	neonGold = Color3.fromRGB(255, 200, 50),
 
 	textPrimary = Color3.fromRGB(240, 240, 255),
-	textSecondary = Color3.fromRGB(120, 115, 150),
-	textMuted = Color3.fromRGB(60, 55, 80),
+	textSecondary = Color3.fromRGB(150, 145, 180),
+	textMuted = Color3.fromRGB(100, 95, 130),
 }
 
 -- ============================================================
@@ -71,30 +71,6 @@ function UIEffects.addNeonPulse(parent: GuiObject, color: Color3, thickness: num
 end
 
 -- Horizontal scan line that sweeps down the frame
-function UIEffects.addScanLine(parent: Frame)
-	local scanLine = Instance.new("Frame")
-	scanLine.Name = "ScanLine"
-	scanLine.Size = UDim2.new(1, 0, 0, 1)
-	scanLine.Position = UDim2.new(0, 0, 0, 0)
-	scanLine.BackgroundColor3 = Color3.fromRGB(0, 240, 255)
-	scanLine.BackgroundTransparency = 0.7
-	scanLine.BorderSizePixel = 0
-	scanLine.ZIndex = 15
-	scanLine.Parent = parent
-
-	task.spawn(function()
-		while scanLine and scanLine.Parent do
-			scanLine.Position = UDim2.new(0, 0, -0.02, 0)
-			scanLine.BackgroundTransparency = 0.7
-			TweenService:Create(scanLine, TweenInfo.new(3, Enum.EasingStyle.Linear), {
-				Position = UDim2.new(0, 0, 1.02, 0),
-			}):Play()
-			task.wait(3)
-			task.wait(math.random(20, 50) / 10)
-		end
-	end)
-end
-
 -- Digital noise particles (tiny dots that flicker)
 function UIEffects.addDigitalParticles(parent: Frame, count: number?)
 	local numParticles = count or 15
@@ -173,23 +149,6 @@ function UIEffects.addNeonButton(button: TextButton, neonColor: Color3)
 	end)
 end
 
--- Legacy-compatible button hover (for non-neon buttons)
-function UIEffects.addButtonHover(button: TextButton, baseColor: Color3)
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = Color3.fromRGB(255, 255, 255)
-	stroke.Thickness = 0
-	stroke.Transparency = 0.5
-	stroke.Parent = button
-
-	button.MouseEnter:Connect(function()
-		TweenService:Create(stroke, TweenInfo.new(0.15), { Thickness = 1.5, Transparency = 0.4 }):Play()
-	end)
-
-	button.MouseLeave:Connect(function()
-		TweenService:Create(stroke, TweenInfo.new(0.15), { Thickness = 0, Transparency = 0.5 }):Play()
-	end)
-end
-
 -- Pulse animation
 function UIEffects.addPulse(element: GuiObject)
 	task.spawn(function()
@@ -265,21 +224,17 @@ end
 
 -- Dark glass background for a frame
 function UIEffects.applyDarkGlass(frame: Frame)
-	frame.BackgroundColor3 = Color3.fromRGB(8, 6, 20)
-	frame.BackgroundTransparency = 0.15
+	frame.BackgroundColor3 = Color3.fromRGB(18, 14, 38)
+	frame.BackgroundTransparency = 0
 	frame.BorderSizePixel = 0
 
 	local corner = Instance.new("UICorner")
 	corner.CornerRadius = UDim.new(0, 8)
 	corner.Parent = frame
 
-	UIEffects.addGradient(frame, Color3.fromRGB(12, 8, 25), Color3.fromRGB(5, 3, 15), 160)
+	UIEffects.addGradient(frame, Color3.fromRGB(22, 16, 42), Color3.fromRGB(12, 8, 28), 160)
 end
 
--- Kept for backwards compatibility
-function UIEffects.addFloatingParticles(parent: Frame, count: number?)
-	UIEffects.addDigitalParticles(parent, count)
-end
 
 -- Slide an element in
 function UIEffects.slideIn(element: GuiObject, fromDirection: string?, duration: number?)

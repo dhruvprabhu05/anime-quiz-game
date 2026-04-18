@@ -3,6 +3,7 @@
 
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local InterludePlayer = {}
 
@@ -161,12 +162,25 @@ function InterludePlayer.play(screenGui: ScreenGui, onComplete: () -> ())
 	local animFunc = ENTRANCE_ANIMATIONS[math.random(1, #ENTRANCE_ANIMATIONS)]
 	local entranceTween = animFunc(image)
 
-	-- Play sound
+	-- Play sound (preload then play, respect SFX volume)
+	local sfxFlag = ReplicatedStorage:FindFirstChild("SFXVolume")
+	local sfxVolume = if sfxFlag then sfxFlag.Value else 0.8
+
 	local sound = Instance.new("Sound")
 	sound.SoundId = interlude.soundId
-	sound.Volume = 0.8
+	sound.Volume = sfxVolume
 	sound.Parent = SoundService
+
+	-- Wait for the sound to load, then play
+	if not sound.IsLoaded then
+		sound.Loaded:Wait()
+	end
 	sound:Play()
+
+	-- Clean up sound when it finishes (not when overlay closes)
+	sound.Ended:Connect(function()
+		sound:Destroy()
+	end)
 
 	-- Subtle shake while displayed
 	task.spawn(function()
@@ -188,7 +202,6 @@ function InterludePlayer.play(screenGui: ScreenGui, onComplete: () -> ())
 		local exit = exitAnimation(image, overlay)
 		exit.Completed:Wait()
 		overlay:Destroy()
-		sound:Destroy()
 		onComplete()
 	end)
 end

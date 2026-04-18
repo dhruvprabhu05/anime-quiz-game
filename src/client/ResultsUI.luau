@@ -45,7 +45,6 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 
 	UIEffects.addGradient(frame, C.bg, C.bgPanel, 160)
 	UIEffects.addDigitalParticles(frame, 20)
-	UIEffects.addScanLine(frame)
 
 	-- Result card: dark glass panel
 	local card = Instance.new("Frame")
