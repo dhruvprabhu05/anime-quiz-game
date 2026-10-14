@@ -9,9 +9,6 @@ local remoteEvents = {
 	"SubmitAnswer",       -- Client -> Server: player picked an answer
 	"QuizResult",         -- Server -> Client: final archetype result
 	"TimerSkipGranted",   -- Server -> Client: 5 minutes removed from timer
-	"LeaderboardUpdate",  -- Server -> Client: updated archetype list for all players
-	"RequestLeaderboard", -- Client -> Server: ask for current leaderboard state
-	"SpinPurchaseComplete", -- Server -> Client: spin purchase completed
 }
 
 local remoteFunctions = {
@@ -19,11 +16,6 @@ local remoteFunctions = {
 	"StartQuiz",          -- Client -> Server: get shuffled question order, returns question indices
 	"CheckGamePass",      -- Client -> Server: check if player owns Instant Unlock
 	"CheckQuizCooldown",  -- Client -> Server: get remaining quiz cooldown seconds
-	"SelectAura",         -- Client -> Server: choose which unlocked archetype aura to display
-	"RequestSpin",        -- Client -> Server: request single spin
-	"RequestBulkSpin",    -- Client -> Server: request 5 spins at once
-	"CraftAura",          -- Client -> Server: craft aura action
-	"LoadInventory",      -- Client -> Server: load player inventory
 }
 
 function Remotes.init()

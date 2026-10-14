@@ -18,7 +18,7 @@ local ARCHETYPE_COLORS: { [string]: Color3 } = {
 	cheerful_optimist = Color3.fromRGB(255, 200, 50),
 }
 
-function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: () -> (), onCollection: () -> (), onHub: (() -> ())?, onSpinWheel: (() -> ())?)
+function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: () -> (), onCollection: () -> ())
 	local UIEffects = require(script.Parent:WaitForChild("UIEffects"))
 	local C = UIEffects.COLORS
 
@@ -176,7 +176,7 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 	local retakeButton = Instance.new("TextButton")
 	retakeButton.Name = "RetakeButton"
 	retakeButton.Size = UDim2.new(0.2, 0, 0.065, 0)
-	retakeButton.Position = UDim2.new(0.03, 0, 0.84, 0)
+	retakeButton.Position = UDim2.new(0.28, 0, 0.84, 0)
 	retakeButton.BackgroundColor3 = Color3.fromRGB(0, 30, 40)
 	retakeButton.BackgroundTransparency = 0
 	retakeButton.Text = "[ RETAKE QUIZ ]"
@@ -198,37 +198,11 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 
 	UIEffects.addNeonButton(retakeButton, C.neonCyan)
 
-	-- SPIN WHEEL button
-	local spinButton = Instance.new("TextButton")
-	spinButton.Name = "SpinButton"
-	spinButton.Size = UDim2.new(0.2, 0, 0.065, 0)
-	spinButton.Position = UDim2.new(0.27, 0, 0.84, 0)
-	spinButton.BackgroundColor3 = Color3.fromRGB(35, 25, 5)
-	spinButton.BackgroundTransparency = 0
-	spinButton.Text = "[ SPIN WHEEL ]"
-	spinButton.TextColor3 = C.neonGold
-	spinButton.TextScaled = true
-	spinButton.Font = Enum.Font.RobotoMono
-	spinButton.ZIndex = 5
-	spinButton.Parent = frame
-
-	local spinCorner = Instance.new("UICorner")
-	spinCorner.CornerRadius = UDim.new(0, 8)
-	spinCorner.Parent = spinButton
-
-	local spinStroke = Instance.new("UIStroke")
-	spinStroke.Color = C.neonGold
-	spinStroke.Thickness = 2
-	spinStroke.Transparency = 0.2
-	spinStroke.Parent = spinButton
-
-	UIEffects.addNeonButton(spinButton, C.neonGold)
-
 	-- COLLECTION button
 	local collectionButton = Instance.new("TextButton")
 	collectionButton.Name = "CollectionButton"
 	collectionButton.Size = UDim2.new(0.2, 0, 0.065, 0)
-	collectionButton.Position = UDim2.new(0.51, 0, 0.84, 0)
+	collectionButton.Position = UDim2.new(0.52, 0, 0.84, 0)
 	collectionButton.BackgroundColor3 = Color3.fromRGB(10, 10, 40)
 	collectionButton.BackgroundTransparency = 0
 	collectionButton.Text = "[ COLLECTION ]"
@@ -250,32 +224,6 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 
 	UIEffects.addNeonButton(collectionButton, C.neonBlue)
 
-	-- EXPLORE HUB button
-	local hubButton = Instance.new("TextButton")
-	hubButton.Name = "HubButton"
-	hubButton.Size = UDim2.new(0.2, 0, 0.065, 0)
-	hubButton.Position = UDim2.new(0.75, 0, 0.84, 0)
-	hubButton.BackgroundColor3 = Color3.fromRGB(30, 5, 25)
-	hubButton.BackgroundTransparency = 0
-	hubButton.Text = "[ EXPLORE HUB ]"
-	hubButton.TextColor3 = C.neonMagenta
-	hubButton.TextScaled = true
-	hubButton.Font = Enum.Font.RobotoMono
-	hubButton.ZIndex = 5
-	hubButton.Parent = frame
-
-	local hubCorner = Instance.new("UICorner")
-	hubCorner.CornerRadius = UDim.new(0, 8)
-	hubCorner.Parent = hubButton
-
-	local hubStroke = Instance.new("UIStroke")
-	hubStroke.Color = C.neonMagenta
-	hubStroke.Thickness = 2
-	hubStroke.Transparency = 0.2
-	hubStroke.Parent = hubButton
-
-	UIEffects.addNeonButton(hubButton, C.neonMagenta)
-
 	-- Wire up callbacks
 	retakeButton.MouseButton1Click:Connect(function()
 		onRetake()
@@ -283,18 +231,6 @@ function ResultsUI.build(screenGui: ScreenGui, archetypeId: string, onRetake: ()
 
 	collectionButton.MouseButton1Click:Connect(function()
 		onCollection()
-	end)
-
-	hubButton.MouseButton1Click:Connect(function()
-		if onHub then
-			onHub()
-		end
-	end)
-
-	spinButton.MouseButton1Click:Connect(function()
-		if onSpinWheel then
-			onSpinWheel()
-		end
 	end)
 end
 
