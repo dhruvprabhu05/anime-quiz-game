@@ -21,8 +21,6 @@ local ResultsUI = require(script.Parent:WaitForChild("ResultsUI"))
 local CollectionUI = require(script.Parent:WaitForChild("CollectionUI"))
 local InterludePlayer = require(script.Parent:WaitForChild("InterludePlayer"))
 local SettingsUI = require(script.Parent:WaitForChild("SettingsUI"))
-local SpinWheelUI = require(script.Parent:WaitForChild("SpinWheelUI"))
-local InventoryUI = require(script.Parent:WaitForChild("InventoryUI"))
 
 -- State
 local currentScreen: string = "none"
@@ -41,52 +39,9 @@ local function hideAllScreens()
 end
 
 
--- "Open Menu" button — shown only when in hub mode
-local openMenuButton = Instance.new("TextButton")
-openMenuButton.Name = "OpenMenuButton"
-openMenuButton.Size = UDim2.new(0, 150, 0, 38)
-openMenuButton.Position = UDim2.new(0.5, -75, 1, -52)
-openMenuButton.BackgroundColor3 = Color3.fromRGB(0, 35, 45)
-openMenuButton.BackgroundTransparency = 0
-openMenuButton.Text = "[ OPEN MENU ]"
-openMenuButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-openMenuButton.TextScaled = true
-openMenuButton.Font = Enum.Font.RobotoMono
-openMenuButton.ZIndex = 20
-openMenuButton.Visible = false
-openMenuButton.Parent = screenGui
-
-local menuCorner = Instance.new("UICorner")
-menuCorner.CornerRadius = UDim.new(0, 6)
-menuCorner.Parent = openMenuButton
-
-local menuStroke = Instance.new("UIStroke")
-menuStroke.Color = C.neonCyan
-menuStroke.Thickness = 1.5
-menuStroke.Transparency = 0.3
-menuStroke.Parent = openMenuButton
-
-local menuPadding = Instance.new("UIPadding")
-menuPadding.PaddingLeft = UDim.new(0, 8)
-menuPadding.PaddingRight = UDim.new(0, 8)
-menuPadding.Parent = openMenuButton
-
--- Screens that can be closed with X (not quiz or timer — those need to be completed)
-local function enterHub()
-	hideAllScreens()
-	currentScreen = "hub"
-	openMenuButton.Visible = true
-end
-
 local function showScreen(name: string)
 	hideAllScreens()
 	currentScreen = name
-	openMenuButton.Visible = false
-
-	if name == "hub" then
-		enterHub()
-		return
-	end
 
 	if name == "welcome" then
 		local frame = screenGui:FindFirstChild("WelcomeFrame")
@@ -113,22 +68,8 @@ local function showScreen(name: string)
 		if frame then
 			frame.Visible = true
 		end
-	elseif name == "spinwheel" then
-		local frame = screenGui:FindFirstChild("SpinWheelFrame")
-		if frame then
-			frame.Visible = true
-		end
-	elseif name == "inventory" then
-		local frame = screenGui:FindFirstChild("InventoryFrame")
-		if frame then
-			frame.Visible = true
-		end
 	end
 end
-
-openMenuButton.MouseButton1Click:Connect(function()
-	showScreen("welcome")
-end)
 
 -- Build Welcome Screen
 local function makeMenuButton(parent: Frame, text: string, yPos: number, neonColor: Color3): TextButton
@@ -211,8 +152,8 @@ local function buildWelcomeScreen()
 
 	-- Center panel (dark glass container for buttons)
 	local panel = Instance.new("Frame")
-	panel.Size = UDim2.new(0.38, 0, 0.5, 0)
-	panel.Position = UDim2.new(0.31, 0, 0.44, 0)
+	panel.Size = UDim2.new(0.38, 0, 0.24, 0)
+	panel.Position = UDim2.new(0.31, 0, 0.46, 0)
 	panel.BackgroundColor3 = C.bgPanel
 	panel.BackgroundTransparency = 0.4
 	panel.BorderSizePixel = 0
@@ -226,14 +167,11 @@ local function buildWelcomeScreen()
 	UIEffects.addNeonPulse(panel, C.neonPurple, 1)
 
 	-- Buttons inside panel (positions relative to full frame)
-	local startButton = makeMenuButton(frame, "[ START QUIZ ]", 0.48, C.neonCyan)
+	local startButton = makeMenuButton(frame, "[ START QUIZ ]", 0.50, C.neonCyan)
 	startButton.Font = Enum.Font.GothamBlack
 	UIEffects.addPulse(startButton)
 
-	local spinButton = makeMenuButton(frame, "[ SPIN WHEEL ]", 0.56, C.neonGold)
-	local inventoryButton = makeMenuButton(frame, "[ INVENTORY ]", 0.64, C.neonMagenta)
-	local collectionButton = makeMenuButton(frame, "[ COLLECTION ]", 0.72, C.neonBlue)
-	local hubButton = makeMenuButton(frame, "[ EXPLORE HUB ]", 0.80, C.neonPurple)
+	local collectionButton = makeMenuButton(frame, "[ COLLECTION ]", 0.60, C.neonBlue)
 
 	-- Bottom system text
 	local sysText = Instance.new("TextLabel")
@@ -272,20 +210,8 @@ local function buildWelcomeScreen()
 		onStartQuiz()
 	end)
 
-	spinButton.MouseButton1Click:Connect(function()
-		showSpinWheel()
-	end)
-
-	inventoryButton.MouseButton1Click:Connect(function()
-		showInventory()
-	end)
-
 	collectionButton.MouseButton1Click:Connect(function()
 		showCollectionScreen(true)
-	end)
-
-	hubButton.MouseButton1Click:Connect(function()
-		enterHub()
 	end)
 end
 
@@ -338,34 +264,6 @@ function onAnswerSelected(answerIndex: number)
 	end
 end
 
-function showInventory()
-	local loadRemote = Remotes.get("LoadInventory") :: RemoteFunction
-	local data = loadRemote:InvokeServer()
-	InventoryUI.build(screenGui, data, function()
-		showScreen("welcome")
-	end)
-	showScreen("inventory")
-end
-
-function showSpinWheel()
-	local loadRemote = Remotes.get("LoadInventory") :: RemoteFunction
-	local data = loadRemote:InvokeServer()
-
-	local idsFolder = ReplicatedStorage:WaitForChild("MonetizationIds")
-	local spinData = {
-		freeSpinsAvailable = data.freeSpinsAvailable,
-		buy1SpinProductId = idsFolder:WaitForChild("Buy1SpinProductId").Value,
-		buy5SpinsProductId = idsFolder:WaitForChild("Buy5SpinsProductId").Value,
-	}
-
-	SpinWheelUI.build(screenGui, spinData, function()
-		showScreen("welcome")
-	end, function()
-		showInventory()
-	end)
-	showScreen("spinwheel")
-end
-
 function showCollectionScreen(fromWelcome: boolean)
 	local loadRemote = Remotes.get("LoadPlayerData") :: RemoteFunction
 	local data = loadRemote:InvokeServer()
@@ -404,12 +302,6 @@ function showResults(archetypeId: string)
 	end, function()
 		-- View collection
 		showCollectionScreen(false)
-	end, function()
-		-- Explore hub
-		enterHub()
-	end, function()
-		-- Spin wheel
-		showSpinWheel()
 	end)
 	showScreen("results")
 end

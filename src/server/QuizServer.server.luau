@@ -126,10 +126,6 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 		-- Record quiz completion time for cooldown enforcement
 		quizCompletionTimes[player.UserId] = tick()
 
-		-- Notify leaderboard manager
-		local resultBindable = ServerScriptService:WaitForChild("PlayerResultEvent")
-		resultBindable:Fire(player, result)
-
 		local quizResultRemote = Remotes.get("QuizResult") :: RemoteEvent
 		quizResultRemote:FireClient(player, result)
 	end
