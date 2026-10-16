@@ -1,8 +1,6 @@
--- Archetype ID shorthand used in weights:
--- hh = hot_headed_hero, cs = cool_strategist, lw = lone_wolf,
--- gp = gentle_protector, cw = chaotic_wildcard, sp = silent_powerhouse,
--- lc = loyal_companion, wm = wise_mentor, rc = rebel_with_a_cause,
--- co = cheerful_optimist
+--!strict
+-- All quiz questions. Each answer adds weighted points to one or more archetypes
+-- (ids from Data/Archetypes); the highest total at the end is the player's title.
 
 export type Answer = {
 	text: string,
@@ -261,9 +259,17 @@ local Questions: { Question } = {
 	},
 }
 
-local QuestionBank = {}
+for _, question in Questions do
+	for _, answer in question.answers do
+		table.freeze(answer.weights)
+		table.freeze(answer)
+	end
+	table.freeze(question.answers)
+	table.freeze(question)
+end
+table.freeze(Questions)
 
-QuestionBank.questions = Questions
+local QuestionBank = {}
 
 function QuestionBank.getShuffledIndices(): { number }
 	local indices = {}

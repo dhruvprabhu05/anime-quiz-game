@@ -1,0 +1,39 @@
+--!strict
+-- Game-wide constants shared by the server and the client.
+-- Change a number here and every script that uses it follows.
+
+local Config = {}
+
+Config.Quiz = {
+	-- Wait between finishing a quiz and seeing the result (Instant Unlock owners skip it).
+	-- Players can start another quiz as soon as they've seen the result.
+	RESULT_WAIT_SECONDS = 15 * 60,
+	-- Seconds removed from the wait by one "Skip 5 Minutes" purchase
+	SKIP_SECONDS = 5 * 60,
+	ANSWERS_PER_QUESTION = 4,
+	-- Server spam limit: minimum average seconds per answer, measured from quiz start.
+	-- Must stay below CLIENT_ANSWER_LOCK_SECONDS, or honest answers get dropped.
+	MIN_SECONDS_PER_ANSWER = 0.3,
+	-- The client ignores taps for this long after a question appears
+	CLIENT_ANSWER_LOCK_SECONDS = 0.4,
+	-- A quiz with no accepted answer for this long counts as abandoned and can be restarted
+	STALE_SESSION_SECONDS = 120,
+}
+
+Config.Products = {
+	-- Developer Product "Skip 5 Minutes" (5 R$)
+	SKIP_TIMER_PRODUCT_ID = 3576830852,
+	-- Game Pass "Instant Unlock" (49 R$): removes the wait forever
+	INSTANT_UNLOCK_PASS_ID = 1797259226,
+}
+
+Config.DataStore = {
+	NAME = "PlayerArchetypeData_v1",
+	KEY_PREFIX = "player_",
+}
+
+table.freeze(Config.Quiz)
+table.freeze(Config.Products)
+table.freeze(Config.DataStore)
+
+return table.freeze(Config)

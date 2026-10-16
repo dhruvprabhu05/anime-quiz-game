@@ -2,3 +2,7 @@
 .env
 .env.*
 *.env
+
+# Wally packages (run `wally install` to recreate)
+Packages/
+sourcemap.json

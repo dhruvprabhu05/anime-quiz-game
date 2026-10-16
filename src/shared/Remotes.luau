@@ -1,44 +1,59 @@
--- Declares all RemoteEvents and RemoteFunctions used for client-server communication.
--- Both client and server require this module to get references by name.
+--!strict
+-- Every RemoteEvent / RemoteFunction the game uses, plus helpers to create and find them.
+-- Always refer to a remote through these name constants so a typo can't silently break it.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local FOLDER_NAME = "Remotes"
+
+export type PlayerData = {
+	currentArchetype: string, -- archetype id of the latest result ("" before the first quiz)
+	unlockedArchetypes: { string }, -- archetype ids collected so far
+}
+
+-- ok = false only while the player still has a quiz in progress
+export type StartQuizResult = { ok: true, questionOrder: { number } } | { ok: false }
+
 local Remotes = {}
 
-local remoteEvents = {
-	"SubmitAnswer",       -- Client -> Server: player picked an answer
-	"QuizResult",         -- Server -> Client: final archetype result
-	"TimerSkipGranted",   -- Server -> Client: 5 minutes removed from timer
+local EVENT_NAMES = {
+	SubmitAnswer = "SubmitAnswer", -- client -> server: (answerIndex: number)
+	QuizResult = "QuizResult", -- server -> client: (archetypeId: string, waitSeconds: number)
+	TimerSkipGranted = "TimerSkipGranted", -- server -> client: (secondsRemoved: number)
 }
 
-local remoteFunctions = {
-	"LoadPlayerData",     -- Client -> Server: get saved collection + current archetype
-	"StartQuiz",          -- Client -> Server: get shuffled question order, returns question indices
-	"CheckGamePass",      -- Client -> Server: check if player owns Instant Unlock
-	"CheckQuizCooldown",  -- Client -> Server: get remaining quiz cooldown seconds
+local FUNCTION_NAMES = {
+	LoadPlayerData = "LoadPlayerData", -- client -> server: () -> PlayerData
+	StartQuiz = "StartQuiz", -- client -> server: () -> StartQuizResult
 }
 
-function Remotes.init()
+Remotes.Events = table.freeze(EVENT_NAMES)
+Remotes.Functions = table.freeze(FUNCTION_NAMES)
+
+-- Server only: creates every remote. The folder is parented last, so a client that
+-- finds the folder always finds all of its remotes too.
+function Remotes.createAll()
 	local folder = Instance.new("Folder")
-	folder.Name = "Remotes"
-	folder.Parent = ReplicatedStorage
-
-	for _, name in remoteEvents do
+	folder.Name = FOLDER_NAME
+	for _, name in EVENT_NAMES :: { [string]: string } do
 		local remote = Instance.new("RemoteEvent")
 		remote.Name = name
 		remote.Parent = folder
 	end
-
-	for _, name in remoteFunctions do
+	for _, name in FUNCTION_NAMES :: { [string]: string } do
 		local remote = Instance.new("RemoteFunction")
 		remote.Name = name
 		remote.Parent = folder
 	end
+	folder.Parent = ReplicatedStorage
 end
 
-function Remotes.get(name: string): Instance
-	local folder = ReplicatedStorage:WaitForChild("Remotes")
-	return folder:WaitForChild(name)
+function Remotes.event(name: string): RemoteEvent
+	return ReplicatedStorage:WaitForChild(FOLDER_NAME):WaitForChild(name) :: RemoteEvent
 end
 
-return Remotes
+function Remotes.func(name: string): RemoteFunction
+	return ReplicatedStorage:WaitForChild(FOLDER_NAME):WaitForChild(name) :: RemoteFunction
+end
+
+return table.freeze(Remotes)

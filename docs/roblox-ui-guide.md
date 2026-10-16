@@ -6,87 +6,92 @@ A living guide for building and polishing this game's UI. **Read it before any U
 
 ## 1. How this game's UI is built
 
-- All UI is created in code (Luau) under `src/client/`. Nothing is hand-built in Studio's StarterGui.
-- One `ScreenGui` named `QuizGameUI` (`ResetOnSpawn = false`, `IgnoreGuiInset = true`, `ZIndexBehavior = Sibling`).
-- Each screen is a full-screen `Frame` built by its own module (`QuizUI`, `TimerUI`, `ResultsUI`, `CollectionUI`, `SettingsUI`) via a `build(screenGui, ...)` function. `UIController.client.luau` switches screens with `showScreen(name)`.
-- Shared styling lives in `UIEffects.luau`:
-  - `UIEffects.COLORS` — the palette. Use these tokens; don't introduce one-off colors.
-  - Helpers: `addNeonButton`, `addNeonPulse`, `addGlow`, `addGradient`, `addDigitalParticles`, `addPulse`, `addDivider`, `addGlitchText`, `applyDarkGlass`, `slideIn`.
-- Fonts in use: `GothamBlack` (titles), `GothamBold` / `Gotham` (buttons, labels), `RobotoMono` / `Code` ("system" text). Stick to these three roles.
+- The UI is written with **React Luau** (`jsdotlua/react` + `react-roblox` 17.2.1, installed by Wally into `Packages/`). Nothing is hand-built in Studio's StarterGui.
+- `src/client/Main.client.luau` starts the music and mounts `UI/App` into PlayerGui.
+- `UI/App.luau` owns all UI state (current screen, quiz progress, latest result, collection) and is the only UI code that talks to the server. Screens draw what they're given and report button presses back up.
+- Three ScreenGuis, back to front:
+  - **Backdrop** (`ScreenInsets = None`): full-screen paper and the per-screen watermark kanji.
+  - **Content** (`ScreenInsets = CoreUISafeInsets`): the current screen, clear of Roblox's top bar and notches.
+  - **Overlay** (`ScreenInsets = None`): the settings popup.
+- **Fixed design size, scaled to fit.** Every screen is laid out in pixels on a 1280×720 canvas (`Theme.DESIGN_SIZE`), matching the design mockup. `useFitScale` computes one `UIScale` that fits that canvas into the player's screen, so proportions and text sizes stay consistent on every device.
+- Folder layout under `src/client/UI/`:
+  - `Theme.luau` — every color, font, text size, spacing value and tween. Read from here; never repeat literals.
+  - `Components/` — reusable pieces: `Label`, `InkButton`, `IconButton`, `AnswerButton`, `Seal`, `Chip`, `ProgressBar`, `OrnateCard`, `InkRing`, `TitleCard`, `Slider`, `Spacer`, `ScreenBackdrop`, `InkIcon` (drawn icons), `ScaledText` (text over 100 px).
+  - `Screens/` — `WelcomeScreen`, `QuizScreen`, `TimerScreen`, `ResultsScreen`, `CollectionScreen`, `SettingsPanel`.
+  - `Hooks/` — `useFitScale`, `useRemoteEvent`, `useSecondsLeft`, `useProductPrice`.
+  - `Util/` — `Format` (clock, minutes, Robux), `Kanji` (numerals), `Input` (press/move checks).
 
-### Palette contrast (measured against `bg` 5,3,15 and `bgPanel` 20,16,40)
+### Look: Japanese traditional
 
-| Token | on bg | on panel | Safe for |
-|---|---|---|---|
-| textPrimary | 18.1 | 16.4 | anything |
-| textSecondary | 6.8 | 6.2 | body text |
-| textMuted | 3.4 | 3.1 | **large text / decoration only** — too faint for small text |
-| neonCyan | 14.5 | 13.1 | anything |
-| neonGold | 13.2 | 12.0 | anything |
-| neonMagenta | 5.9 | 5.4 | body text |
-| neonPurple | 4.5 | 4.0 | large text, borders |
-| neonBlue | 4.3 | 3.9 | large text, borders |
+Washi paper, sumi ink, one vermilion accent. The paper fills the whole screen; nothing frames the edges. Each title has a kanji shown on a red seal stamp (炎 智 狼 守 乱 静 絆 師 反 陽, defined in `shared/Data/Archetypes.luau`). Fonts: Merriweather (display) and Nunito (body), both built into Roblox; Roblox draws kanji with its own Japanese font.
 
-Rule of thumb: small text needs ≥ 4.5:1, large/bold text ≥ 3:1.
+### Palette contrast (measured; small text needs ≥ 4.5:1, large text ≥ 3:1)
+
+| Token | Hex | Against | Ratio | Safe for |
+|---|---|---|---|---|
+| ink | #1E1A17 | paper #F3EAD7 | 14.5 | anything |
+| inkSoft | #3A332D | paper | 10.4 | body text |
+| textMuted | #5E554B | paper | 6.1 | secondary text |
+| textLocked | #655A4E | paperDim #E9DFC9 | 5.1 | text on locked cards |
+| vermilion | #B8372B | paper | 4.9 | text, buttons (paper text on vermilion is also 4.9) |
+| lockedBorder | #9A8F80 | paperDim | 2.4 | **decoration only** |
 
 ---
 
 ## 2. Layout
 
-- **Scale for size, constraints for shape.** Pure Scale sizing stretches on ultra-wide monitors and tall phones. Add `UIAspectRatioConstraint` to cards, buttons, and panels that should keep their shape, and `UISizeConstraint` to cap panels on big screens.
-- **Center with AnchorPoint.** `AnchorPoint = Vector2.new(0.5, 0.5)` + `Position = UDim2.fromScale(0.5, 0.5)` instead of hand-computed values like `0.31`.
-- **Use layout objects for rows and stacks.** `UIListLayout` (with `Padding`) for button stacks, `UIGridLayout` for card grids, `UIPadding` for inner spacing. Then adding or removing a button needs no repositioning.
-- **Respect safe areas.** `IgnoreGuiInset = true` lets UI draw under Roblox's top bar. Keep interactive elements out of the top bar area and away from phone notches; `ScreenGui.ScreenInsets` can handle this automatically.
-- **Use a fixed ZIndex scale:** background 1–3, content 4–6, floating buttons ~20–25, modals/overlays 30+. Don't invent random values.
+- **Lay out in design pixels.** Inside a screen, use offsets on the 1280×720 canvas; the canvas `UIScale` handles real screen sizes. Put layout numbers in named constants at the top of the screen file.
+- **Center with AnchorPoint.** `AnchorPoint = Vector2.new(0.5, 0.5)` + `Position = UDim2.fromScale(0.5, 0.5)`.
+- **Use layout objects for rows and stacks.** `UIListLayout` for stacks and rows, `UIGridLayout` for card grids, `UIPadding` for inner spacing, `Spacer` for one-off vertical gaps. Adding or removing an item then needs no repositioning.
+- **Respect safe areas.** Interactive UI lives in the Content ScreenGui (`CoreUISafeInsets`); only decoration goes under the top bar.
+- **ZIndex:** use `ZIndexBehavior = Sibling` and small local values (shadow 1, face 2). Layering between big layers comes from the three ScreenGuis' `DisplayOrder`.
 
 ## 3. Text
 
-- `TextScaled = true` lets every label pick its own size, so neighbouring buttons end up with different text sizes. Always pair it with a `UITextSizeConstraint` (`MaxTextSize`, `MinTextSize`), or use a fixed `TextSize` for body text.
-- Keep text readable on phones — avoid going below roughly 14 px.
-- `TextWrapped = true` for questions and descriptions; `TextTruncate` for player names.
-- Use `RichText` for emphasis inside one label instead of stacking several labels.
+- Use the `Label` component: theme font and color, wraps, grows to fit. Sizes come from `Theme.TextSize`.
+- Avoid `TextScaled` for UI text (each label picks its own size).
+- **Roblox caps `TextSize` (and `TextScaled`) at 100 px.** For anything bigger (seal kanji, the watermark) use `ScaledText`, which enlarges a 100 px label with a `UIScale`.
+- **Don't use symbol characters for icons** (✕ ⚙ ←): the game fonts lack them and they render as empty boxes. Use `InkIcon`.
+- Keep text readable on phones: nothing below `Theme.TextSize.small` (14) on the design canvas, and check the phone emulator, where the canvas scales down.
 
 ## 4. Input on every device
 
-- A large share of Roblox players are on phones and tablets: design for touch first, then check mouse and gamepad.
-- **Use `Activated` instead of `MouseButton1Click`** for buttons — `Activated` fires for mouse, touch, and gamepad.
-- Touch targets should be at least ~44×44 px.
-- Hover effects don't exist on touch — every button also needs press feedback (scale or color change on press).
-- Gamepad/console: buttons must be `Selectable`; when a screen opens, set `GuiService.SelectedObject` to its main button so controller players can navigate.
+- **Buttons use `Activated`**, which fires for mouse, touch and gamepad. `InkButton`, `AnswerButton` and `IconButton` already do.
+- Touch targets ≥ ~44 px on the design canvas.
+- Every button gives press feedback (`UIScale` to `Theme.Motion.PRESS_SCALE`), since hover doesn't exist on touch.
+- Gamepad: pass `selectOnMount = true` to a screen's main `InkButton` so controller players start on it.
+- Use `Util/Input` (`isPress`, `isMove`) instead of re-checking `UserInputType` by hand.
 
 ## 5. Motion
 
-- Animate with `TweenService` (`Position`, `Size`, `Rotation`, transparency properties).
-- Button feedback: ~0.1–0.2 s. Screen entrances: ~0.2–0.4 s with `Quad`/`Quint` + `Out` easing.
-- Looping effects (`task.spawn` + `while ... do` tweens, like `addNeonPulse`) must stop when their element is destroyed, and ideally pause while hidden.
-- Keep particle counts low; cheap phones struggle with many animated UI elements.
-- Fewer, purposeful animations beat everything moving at once.
+- Animate with `TweenService` on refs inside `useEffect`, and cancel delayed threads in the effect's cleanup.
+- Button feedback ≤ 0.2 s; entrances 0.2–0.4 s with `Quad`/`Back` + `Out`.
+- **Never block on an asset loading** (`Sound.Loaded:Wait()` etc.) before scheduling what happens next. A failed load would freeze the flow.
 
-## 6. Visual style: game vs. web advice
+## 6. Visual style
 
-Web design guides (including the UI Skills catalog) say "no glows, no purple gradients". This game's neon anime look is deliberate, so keep it, but:
-
-- **One main accent per screen.** The primary action (e.g. START QUIZ) should be the brightest, most saturated thing; secondary buttons are quieter.
-- **Glow is decoration, never the only signal.** States like selected / locked / disabled also change the text or icon, not just the glow.
-- **Locked collection cards:** silhouette + "???" + a short hint on how to unlock.
-- **Empty states always offer one clear next action** (e.g. an empty collection → "Take the quiz").
+- **One main accent per screen.** The primary action is the only vermilion button; secondary buttons are ink outlines.
+- **State is never color alone.** Locked titles show "?" and "???" plus a hint, not just a faded color.
+- **lockedBorder is decoration only** (contrast too low for text).
+- **Empty or blocked states say what to do next** (e.g. "You can take the quiz again in 12:30.").
 
 ## 7. Code hygiene
 
-- One module per screen, each with `build(...)` that destroys any previous copy of its frame first (existing pattern — keep it).
-- **Disconnect event connections** when a screen closes. Known issue: `SettingsUI` connects `UserInputService.InputChanged` / `InputEnded` every time the panel opens and never disconnects them.
-- Give instances a `Name` so `FindFirstChild` works and debugging in the Explorer is easy.
-- Put shared values (colors, fonts, sizes, tween times) in `UIEffects` rather than repeating literals.
+- **No repeated literals.** Colors, fonts, sizes, tweens → `Theme`; game numbers (timings, product IDs) → `shared/Config.luau`; remote names → `Remotes.Events` / `Remotes.Functions`. Layout numbers used once go in named constants at the top of the file.
+- **One component per module**, props typed with `export type Props`.
+- **Clean up in `useEffect`**: every `:Connect` returns a cleanup that disconnects; every `task.delay` is cancelled.
+- **Latest-callback refs**: when a long-lived connection calls a prop, store the prop in a ref (`onDoneRef.current = props.onDone`) so it never calls a stale one.
+- Run the type checker before committing (see `CLAUDE.md`).
 
 ## 8. Checklist for every UI change
 
-- [ ] Uses palette tokens from `UIEffects.COLORS`; small text meets contrast (section 1)
-- [ ] Text sizes are consistent (`UITextSizeConstraint` or fixed `TextSize`)
-- [ ] Shapes hold with `UIAspectRatioConstraint`; nothing stretches on wide or tall screens
+- [ ] Uses `Theme` tokens; small text meets the contrast table (section 1)
+- [ ] Text through `Label` with `Theme.TextSize` values
+- [ ] Layout in design pixels with named constants; stacks use layout objects
 - [ ] Buttons use `Activated`, are ≥ ~44 px, and give press feedback
-- [ ] Main action is visually dominant; only one main accent on the screen
-- [ ] Nothing interactive under the Roblox top bar or a phone notch
-- [ ] Loops and connections are cleaned up
+- [ ] Only one vermilion (primary) button on the screen
+- [ ] Connections and delayed threads cleaned up
+- [ ] Type checker passes
 - [ ] Tested in Studio's Device Emulator: phone, tablet, desktop, console
 
 ## CSS → Roblox cheat sheet (for translating web UI advice)
@@ -97,11 +102,11 @@ Web design guides (including the UI Skills catalog) say "no glows, no purple gra
 | flexbox, `gap` | `UIListLayout` (`Padding`) |
 | CSS grid | `UIGridLayout` |
 | `border-radius` | `UICorner` |
-| `border` | `UIStroke` (`ApplyStrokeMode = Border`) |
+| `border` | `UIStroke` (`ApplyStrokeMode = Border` on text objects) |
 | `linear-gradient` | `UIGradient` |
 | `max-width` / `min-width` | `UISizeConstraint` |
 | `aspect-ratio` | `UIAspectRatioConstraint` |
-| `clamp()` font size | `UITextSizeConstraint` |
+| `transform: scale()` | `UIScale` |
 | `z-index` | `ZIndex` (with `ZIndexBehavior = Sibling`) |
 | CSS transitions | `TweenService` |
 | `safe-area-inset` | `ScreenGui.ScreenInsets` |
@@ -112,6 +117,13 @@ Web design guides (including the UI Skills catalog) say "no glows, no purple gra
 
 Add newest entries at the top: date, what happened, what to do next time.
 
-- **2026-10-14** — Removing the hub, spin wheel and inventory buttons meant hand-repositioning every remaining button on the welcome and results screens, because positions are hard-coded Scale values. Next time: put button stacks/rows in a `UIListLayout` so removing one needs no layout edits.
-- **2026-10-14** — The UI Skills connector (ui-skills.com) has no Roblox-specific guides; everything is web-focused. Useful ones to translate with the cheat sheet above: `ibelick/baseline-ui`, `ibelick/fixing-accessibility`, `jakubkrehel/better-typography`, `jakubkrehel/make-interfaces-feel-better`, `raphaelsalaja/12-principles-of-animation`.
-- **2026-10-14** — Audit of current code: no `UITextSizeConstraint`, `UIAspectRatioConstraint`, `UIListLayout`, or `AnchorPoint` centering in the main screens; ~35 labels use `TextScaled` alone; buttons use `MouseButton1Click`. These are the first things to fix in a polish pass.
+- **2026-10-15** — Playtest feedback round: the ink "scroll rod" bars at the top and bottom read as black strips, so they were removed and the paper fills the screen. The settings ✕ rendered as an empty box (missing glyph), so all icons are now drawn ink strokes (`InkIcon`). The watermark and the big result-seal kanji were capped at 100 px — fixed with `ScaledText`. Seals inside a `UIListLayout` lost their tilt; tilt an inner frame inside an untilted holder instead.
+- **2026-10-15** — Meme interludes and their sounds were removed (didn't fit the theme), along with the sound-effects volume. Players can now retake the quiz right after seeing a result; the 15-minute wait applies only before a result is revealed.
+- **2026-10-15** — First Studio playtest of the React UI: every screen, the interlude, timer skips, collection, the wait notice and the settings sliders worked with no script errors. Rojo's live sync missed a large batch of new files in new folders (the place ended up with empty Server/Client folders); restarting `rojo serve` and reconnecting fixed it. After big file moves, reconnect Rojo and check the script count in Studio.
+- **2026-10-15** — Answer buttons now also guard with a ref (one answer per question number), because a React `enabled` prop only updates on the next render and two taps in one frame could both submit.
+- **2026-10-15** — Rebuilt the whole UI in React Luau with the Japanese traditional look, from the design mockup. The fixed 1280×720 canvas + one `UIScale` made matching the mockup straightforward; keep using design pixels rather than mixing Scale and Offset per element.
+- **2026-10-15** — `UIStroke` on a `TextButton`/`TextLabel` outlines the *text* unless `ApplyStrokeMode = Border` is set. Every bordered button and chip sets it.
+- **2026-10-15** — The old meme interlude waited for its sound to load before scheduling its exit; a sound that never loaded would freeze the quiz behind a dark overlay. The React version plays the sound without waiting.
+- **2026-10-15** — Answering two questions within 0.8 s made the server silently drop an answer while the client moved on, leaving the quiz stuck on "Calculating". Fixed with a client answer lock (0.4 s) below the server's average-pace limit (0.3 s/answer). Both live in `shared/Config.luau`; keep the client lock above the server limit.
+- **2026-10-14** — Removing the hub, spin wheel and inventory buttons meant hand-repositioning every remaining button, because positions were hard-coded. Layout objects avoid that.
+- **2026-10-14** — The UI Skills connector (ui-skills.com) has no Roblox-specific guides; everything is web-focused. Useful ones to translate with the cheat sheet: `ibelick/baseline-ui`, `ibelick/fixing-accessibility`, `jakubkrehel/better-typography`, `jakubkrehel/make-interfaces-feel-better`, `raphaelsalaja/12-principles-of-animation`.
