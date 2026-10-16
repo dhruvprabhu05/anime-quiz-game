@@ -117,6 +117,8 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 
 Add newest entries at the top: date, what happened, what to do next time.
 
+- **2026-10-15** — First Studio playtest of the React UI: every screen, the interlude, timer skips, collection, the wait notice and the settings sliders worked with no script errors. Rojo's live sync missed a large batch of new files in new folders (the place ended up with empty Server/Client folders); restarting `rojo serve` and reconnecting fixed it. After big file moves, reconnect Rojo and check the script count in Studio.
+- **2026-10-15** — Answer buttons now also guard with a ref (one answer per question number), because a React `enabled` prop only updates on the next render and two taps in one frame could both submit.
 - **2026-10-15** — Rebuilt the whole UI in React Luau with the Japanese traditional look, from the design mockup. The fixed 1280×720 canvas + one `UIScale` made matching the mockup straightforward; keep using design pixels rather than mixing Scale and Offset per element.
 - **2026-10-15** — `UIStroke` on a `TextButton`/`TextLabel` outlines the *text* unless `ApplyStrokeMode = Border` is set. Every bordered button and chip sets it.
 - **2026-10-15** — The old meme interlude waited for its sound to load before scheduling its exit; a sound that never loaded would freeze the quiz behind a dark overlay. The React version plays the sound without waiting.

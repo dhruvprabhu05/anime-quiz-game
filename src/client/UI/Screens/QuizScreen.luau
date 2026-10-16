@@ -111,6 +111,9 @@ end
 local function QuizScreen(props: Props)
 	local question = QuestionBank.getQuestion(props.questionIndex)
 	local answersEnabled, setAnswersEnabled = React.useState(false)
+	-- The question number already answered. Checked synchronously, so two taps landing in the
+	-- same frame (before React re-renders with the buttons disabled) can't submit twice.
+	local answeredNumber = React.useRef(0)
 
 	-- Lock the answers for a moment each time a new question appears
 	React.useEffect(function()
@@ -137,6 +140,10 @@ local function QuizScreen(props: Props)
 			enabled = answersEnabled and not props.finished,
 			layoutOrder = index,
 			onActivated = function()
+				if answeredNumber.current == props.number then
+					return
+				end
+				answeredNumber.current = props.number
 				setAnswersEnabled(false)
 				props.onAnswer(index)
 			end,
