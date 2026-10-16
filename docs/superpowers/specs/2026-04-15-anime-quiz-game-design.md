@@ -2,7 +2,7 @@
 
 ## Overview
 
-A UI-driven Roblox quiz game where players answer 20+ questions (mix of scenario-based and preference-based) that determine which of 10 anime personality archetypes best matches their personality. Results are revealed behind a timer with multiple monetization options. Players collect archetypes across sessions, see each other's results in-server, and enjoy random funny interludes between questions.
+A UI-driven Roblox quiz game where players answer 20+ questions (mix of scenario-based and preference-based) that determine which of 10 anime personality archetypes best matches their personality. Results are revealed behind a timer with multiple monetization options. Players collect archetypes across sessions, and see each other's results in-server.
 
 **Approach:** Start as a pure UI game (V1), layer on a 3D anime-themed hub world in V2.
 
@@ -57,13 +57,6 @@ Each archetype has a name, description, and 3-4 example anime characters.
 4. **Results Screen** — shareable card with archetype name, description, example characters, stylized visual. Buttons: "Retake Quiz", "View Collection"
 5. **Collection Screen** — grid of all 10 archetypes. Unlocked ones show full color with description. Locked ones are greyed out / silhouetted. Accessible from Welcome Screen or Results Screen.
 6. **Server Leaderboard** — toggleable side panel showing each player's archetype and the most common archetype in the server
-
-### Random Interludes
-- Between questions, ~1 in 4-5 chance of a brief interlude
-- A funny/meme-style image pops up (center overlay) with a sound effect (anime dramatic stings, goofy boings, vine boom, etc.)
-- Lasts 2-3 seconds, then auto-dismisses
-- Pool of ~10-15 image/sound combos to avoid repetition
-- Assets stored as Decals (images) and Sound objects, picked at random
 
 ---
 
@@ -121,8 +114,7 @@ Three monetization channels on the timer screen:
 
 ### Client (StarterGui / StarterPlayerScripts)
 - **UI Controller** — manages screen transitions (Welcome > Quiz > Timer > Results > Collection)
-- **Quiz Controller** — handles question display, answer input, interlude triggers
-- **Sound/Image Controller** — plays random interludes (picks from asset pool)
+- **Quiz Controller** — handles question display and answer input
 
 ### Server (ServerScriptService)
 - **Quiz Scoring** — receives player answers, calculates archetype results server-side
@@ -133,7 +125,6 @@ Three monetization channels on the timer screen:
 ### Shared (ReplicatedStorage)
 - **Question Bank ModuleScript** — all 20+ questions with answer-to-archetype weight mappings
 - **Archetype Definitions ModuleScript** — names, descriptions, example characters, display info
-- **Interlude Assets** — pool of images (Decals) and sounds
 - **RemoteEvents/RemoteFunctions** — client-server communication for submitting answers, receiving results, syncing leaderboard
 
 ### Key Principle

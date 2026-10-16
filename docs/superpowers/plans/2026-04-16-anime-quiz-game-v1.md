@@ -34,7 +34,6 @@ anime-quiz-game/
 │       ├── ResultsUI.luau             -- Shareable result card
 │       ├── CollectionUI.luau          -- Archetype collection grid
 │       ├── LeaderboardUI.luau         -- Server leaderboard side panel
-│       └── InterludePlayer.luau       -- Random image/sound popups
 ├── docs/
 │   └── superpowers/
 │       ├── specs/
@@ -1219,7 +1218,6 @@ local TimerUI = require(script.Parent:WaitForChild("TimerUI"))
 local ResultsUI = require(script.Parent:WaitForChild("ResultsUI"))
 local CollectionUI = require(script.Parent:WaitForChild("CollectionUI"))
 local LeaderboardUI = require(script.Parent:WaitForChild("LeaderboardUI"))
-local InterludePlayer = require(script.Parent:WaitForChild("InterludePlayer"))
 
 -- State
 local currentScreen: string = "none"
@@ -1355,14 +1353,7 @@ function showNextQuestion()
 		return -- All answered, waiting for server result
 	end
 
-	-- Random interlude check (1 in 5 chance, not on first question)
-	if currentQuizIndex > 1 and math.random(1, 5) == 1 then
-		InterludePlayer.play(screenGui, function()
-			QuizUI.showQuestion(currentQuizOrder[currentQuizIndex], currentQuizIndex, #currentQuizOrder, onAnswerSelected)
-		end)
-	else
-		QuizUI.showQuestion(currentQuizOrder[currentQuizIndex], currentQuizIndex, #currentQuizOrder, onAnswerSelected)
-	end
+	QuizUI.showQuestion(currentQuizOrder[currentQuizIndex], currentQuizIndex, #currentQuizOrder, onAnswerSelected)
 end
 
 function onAnswerSelected(answerIndex: number)
@@ -2382,93 +2373,7 @@ git commit -m "feat: toggleable leaderboard side panel with server archetype ran
 
 ---
 
-## Task 14: Interlude Player (Random Popups)
-
-**Files:**
-- Create: `src/client/InterludePlayer.luau`
-
-- [ ] **Step 1: Create InterludePlayer module**
-
-Create `src/client/InterludePlayer.luau`:
-
-```luau
--- Plays random funny image + sound interludes between quiz questions.
---
--- IMPORTANT: You must upload images and sounds to Roblox and paste their asset IDs below.
--- Each entry needs:
---   imageId: "rbxassetid://XXXXXXXXXX" (upload an image as a Decal in Roblox Studio)
---   soundId: "rbxassetid://XXXXXXXXXX" (upload a sound via Creator Dashboard)
-
-local SoundService = game:GetService("SoundService")
-
-local InterludePlayer = {}
-
--- Replace "rbxassetid://0" with real asset IDs after uploading to Roblox
-local INTERLUDES = {
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 1
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 2
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 3
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 4
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 5
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 6
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 7
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 8
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 9
-	{ imageId = "rbxassetid://0", soundId = "rbxassetid://0" }, -- Slot 10
-}
-
-local DISPLAY_DURATION = 2.5 -- seconds
-
-function InterludePlayer.play(screenGui: ScreenGui, onComplete: () -> ())
-	local interlude = INTERLUDES[math.random(1, #INTERLUDES)]
-
-	-- Create overlay
-	local overlay = Instance.new("Frame")
-	overlay.Name = "InterludeOverlay"
-	overlay.Size = UDim2.new(1, 0, 1, 0)
-	overlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	overlay.BackgroundTransparency = 0.3
-	overlay.ZIndex = 20
-	overlay.Parent = screenGui
-
-	-- Image in center
-	local image = Instance.new("ImageLabel")
-	image.Size = UDim2.new(0.4, 0, 0.5, 0)
-	image.Position = UDim2.new(0.3, 0, 0.25, 0)
-	image.BackgroundTransparency = 1
-	image.Image = interlude.imageId
-	image.ScaleType = Enum.ScaleType.Fit
-	image.ZIndex = 21
-	image.Parent = overlay
-
-	-- Play sound
-	local sound = Instance.new("Sound")
-	sound.SoundId = interlude.soundId
-	sound.Volume = 0.8
-	sound.Parent = SoundService
-	sound:Play()
-
-	-- Auto-dismiss after duration
-	task.delay(DISPLAY_DURATION, function()
-		overlay:Destroy()
-		sound:Destroy()
-		onComplete()
-	end)
-end
-
-return InterludePlayer
-```
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add src/client/InterludePlayer.luau
-git commit -m "feat: random interlude player with image/sound popups between questions"
-```
-
----
-
-## Task 15: Integration Testing in Roblox Studio
+## Task 14: Integration Testing in Roblox Studio
 
 **Files:**
 - No new files. This task verifies everything works together.
@@ -2501,7 +2406,6 @@ Click "Start Quiz". Verify:
 - Quiz screen shows with question text, 4 answer buttons, progress bar, counter
 - Clicking an answer advances to the next question
 - Progress bar fills as you answer
-- Random interludes appear occasionally (will show blank images until assets are uploaded)
 - After all 24 questions, "Calculating your archetype..." appears briefly
 
 - [ ] **Step 5: Play test — Timer Screen**
@@ -2549,35 +2453,18 @@ git commit -m "fix: integration test fixes"
 
 ---
 
-## Task 16: Upload Assets & Configure Monetization IDs
+## Task 15: Configure Monetization IDs
 
 **Files:**
-- Modify: `src/client/InterludePlayer.luau` (replace asset IDs)
 - Modify: `src/server/MonetizationHandler.server.luau` (replace product/gamepass IDs)
 
-- [ ] **Step 1: Upload interlude images**
-
-In Roblox Studio or Creator Dashboard, upload 10 funny/meme images as Decals. Note each asset ID.
-
-- [ ] **Step 2: Upload interlude sounds**
-
-In Creator Dashboard, upload 10 sound effects (vine boom, anime stings, goofy sounds, etc.). Note each asset ID.
-
-- [ ] **Step 3: Update InterludePlayer with real asset IDs**
-
-In `src/client/InterludePlayer.luau`, replace each `"rbxassetid://0"` with the real IDs from steps 1-2. Example:
-
-```luau
-{ imageId = "rbxassetid://123456789", soundId = "rbxassetid://987654321" },
-```
-
-- [ ] **Step 4: Create Developer Product and GamePass**
+- [ ] **Step 1: Create Developer Product and GamePass**
 
 In the Roblox Creator Dashboard for your game:
 1. Create Developer Product: "Skip 5 Minutes" — 5 Robux. Note the Product ID.
 2. Create GamePass: "Instant Unlock" — 49 Robux. Note the GamePass ID.
 
-- [ ] **Step 5: Update MonetizationHandler with real IDs**
+- [ ] **Step 2: Update MonetizationHandler with real IDs**
 
 In `src/server/MonetizationHandler.server.luau`, replace:
 
@@ -2586,18 +2473,18 @@ local SKIP_5MIN_PRODUCT_ID = 0
 local INSTANT_UNLOCK_GAMEPASS_ID = 0
 ```
 
-With the real IDs from step 4.
+With the real IDs from step 1.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add src/client/InterludePlayer.luau src/server/MonetizationHandler.server.luau
-git commit -m "feat: add real asset IDs and monetization product IDs"
+git add src/server/MonetizationHandler.server.luau
+git commit -m "feat: add monetization product IDs"
 ```
 
 ---
 
-## Task 17: Final Verification & Publish
+## Task 16: Final Verification & Publish
 
 - [ ] **Step 1: Full playthrough test**
 
