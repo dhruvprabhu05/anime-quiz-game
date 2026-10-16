@@ -10,21 +10,20 @@ A living guide for building and polishing this game's UI. **Read it before any U
 - `src/client/Main.client.luau` starts the music and mounts `UI/App` into PlayerGui.
 - `UI/App.luau` owns all UI state (current screen, quiz progress, latest result, collection) and is the only UI code that talks to the server. Screens draw what they're given and report button presses back up.
 - Three ScreenGuis, back to front:
-  - **Backdrop** (`ScreenInsets = None`): full-screen paper, scroll rods, per-screen watermark kanji.
+  - **Backdrop** (`ScreenInsets = None`): full-screen paper and the per-screen watermark kanji.
   - **Content** (`ScreenInsets = CoreUISafeInsets`): the current screen, clear of Roblox's top bar and notches.
-  - **Overlay** (`ScreenInsets = None`): meme interludes and the settings popup.
+  - **Overlay** (`ScreenInsets = None`): the settings popup.
 - **Fixed design size, scaled to fit.** Every screen is laid out in pixels on a 1280×720 canvas (`Theme.DESIGN_SIZE`), matching the design mockup. `useFitScale` computes one `UIScale` that fits that canvas into the player's screen, so proportions and text sizes stay consistent on every device.
 - Folder layout under `src/client/UI/`:
   - `Theme.luau` — every color, font, text size, spacing value and tween. Read from here; never repeat literals.
-  - `Components/` — reusable pieces: `Label`, `InkButton`, `IconButton`, `AnswerButton`, `Seal`, `Chip`, `ProgressBar`, `OrnateCard`, `InkRing`, `TitleCard`, `Slider`, `Spacer`, `ScreenBackdrop`.
+  - `Components/` — reusable pieces: `Label`, `InkButton`, `IconButton`, `AnswerButton`, `Seal`, `Chip`, `ProgressBar`, `OrnateCard`, `InkRing`, `TitleCard`, `Slider`, `Spacer`, `ScreenBackdrop`, `InkIcon` (drawn icons), `ScaledText` (text over 100 px).
   - `Screens/` — `WelcomeScreen`, `QuizScreen`, `TimerScreen`, `ResultsScreen`, `CollectionScreen`, `SettingsPanel`.
   - `Hooks/` — `useFitScale`, `useRemoteEvent`, `useSecondsLeft`, `useProductPrice`.
-  - `Interlude/` — the meme pop-ups.
   - `Util/` — `Format` (clock, minutes, Robux), `Kanji` (numerals), `Input` (press/move checks).
 
 ### Look: Japanese traditional
 
-Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a kanji shown on a red seal stamp (炎 智 狼 守 乱 静 絆 師 反 陽, defined in `shared/Data/Archetypes.luau`). Fonts: Merriweather (display) and Nunito (body), both built into Roblox; Roblox draws kanji with its own Japanese font.
+Washi paper, sumi ink, one vermilion accent. The paper fills the whole screen; nothing frames the edges. Each title has a kanji shown on a red seal stamp (炎 智 狼 守 乱 静 絆 師 反 陽, defined in `shared/Data/Archetypes.luau`). Fonts: Merriweather (display) and Nunito (body), both built into Roblox; Roblox draws kanji with its own Japanese font.
 
 ### Palette contrast (measured; small text needs ≥ 4.5:1, large text ≥ 3:1)
 
@@ -36,7 +35,6 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 | textLocked | #655A4E | paperDim #E9DFC9 | 5.1 | text on locked cards |
 | vermilion | #B8372B | paper | 4.9 | text, buttons (paper text on vermilion is also 4.9) |
 | lockedBorder | #9A8F80 | paperDim | 2.4 | **decoration only** |
-| gold | #A8822F | paper | — | **decoration only** (scroll-rod trim) |
 
 ---
 
@@ -51,7 +49,9 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 ## 3. Text
 
 - Use the `Label` component: theme font and color, wraps, grows to fit. Sizes come from `Theme.TextSize`.
-- Avoid `TextScaled` for UI text (each label picks its own size). It's only used for the giant decorative watermark.
+- Avoid `TextScaled` for UI text (each label picks its own size).
+- **Roblox caps `TextSize` (and `TextScaled`) at 100 px.** For anything bigger (seal kanji, the watermark) use `ScaledText`, which enlarges a 100 px label with a `UIScale`.
+- **Don't use symbol characters for icons** (✕ ⚙ ←): the game fonts lack them and they render as empty boxes. Use `InkIcon`.
 - Keep text readable on phones: nothing below `Theme.TextSize.small` (14) on the design canvas, and check the phone emulator, where the canvas scales down.
 
 ## 4. Input on every device
@@ -64,7 +64,7 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 
 ## 5. Motion
 
-- Animate with `TweenService` on refs inside `useEffect`, and cancel delayed threads in the effect's cleanup (see `InterludeOverlay`).
+- Animate with `TweenService` on refs inside `useEffect`, and cancel delayed threads in the effect's cleanup.
 - Button feedback ≤ 0.2 s; entrances 0.2–0.4 s with `Quad`/`Back` + `Out`.
 - **Never block on an asset loading** (`Sound.Loaded:Wait()` etc.) before scheduling what happens next. A failed load would freeze the flow.
 
@@ -72,7 +72,7 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 
 - **One main accent per screen.** The primary action is the only vermilion button; secondary buttons are ink outlines.
 - **State is never color alone.** Locked titles show "?" and "???" plus a hint, not just a faded color.
-- **Gold and lockedBorder are decoration only** (contrast too low for text).
+- **lockedBorder is decoration only** (contrast too low for text).
 - **Empty or blocked states say what to do next** (e.g. "You can take the quiz again in 12:30.").
 
 ## 7. Code hygiene
@@ -117,6 +117,8 @@ Washi paper, sumi ink, one vermilion accent, gold only as trim. Each title has a
 
 Add newest entries at the top: date, what happened, what to do next time.
 
+- **2026-10-15** — Playtest feedback round: the ink "scroll rod" bars at the top and bottom read as black strips, so they were removed and the paper fills the screen. The settings ✕ rendered as an empty box (missing glyph), so all icons are now drawn ink strokes (`InkIcon`). The watermark and the big result-seal kanji were capped at 100 px — fixed with `ScaledText`. Seals inside a `UIListLayout` lost their tilt; tilt an inner frame inside an untilted holder instead.
+- **2026-10-15** — Meme interludes and their sounds were removed (didn't fit the theme), along with the sound-effects volume. Players can now retake the quiz right after seeing a result; the 15-minute wait applies only before a result is revealed.
 - **2026-10-15** — First Studio playtest of the React UI: every screen, the interlude, timer skips, collection, the wait notice and the settings sliders worked with no script errors. Rojo's live sync missed a large batch of new files in new folders (the place ended up with empty Server/Client folders); restarting `rojo serve` and reconnecting fixed it. After big file moves, reconnect Rojo and check the script count in Studio.
 - **2026-10-15** — Answer buttons now also guard with a ref (one answer per question number), because a React `enabled` prop only updates on the next render and two taps in one frame could both submit.
 - **2026-10-15** — Rebuilt the whole UI in React Luau with the Japanese traditional look, from the design mockup. The fixed 1280×720 canvas + one `UIScale` made matching the mockup straightforward; keep using design pixels rather than mixing Scale and Offset per element.

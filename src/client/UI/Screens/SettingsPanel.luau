@@ -1,4 +1,4 @@
--- A popup over the current screen with the music and sound-effect volume sliders.
+-- A popup over the current screen with the music volume slider.
 -- Tapping outside the panel closes it.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,8 +17,7 @@ local Slider = require(Components.Slider)
 local e = React.createElement
 local Colors, Fonts, Size = Theme.Colors, Theme.Fonts, Theme.Size
 
-local CLOSE_GLYPH = "✕"
-local PANEL_SIZE = UDim2.fromOffset(460, 330)
+local PANEL_SIZE = UDim2.fromOffset(460, 240)
 local PANEL_PADDING = UDim.new(0, 32)
 local CONTENT_GAP = UDim.new(0, 22)
 local TITLE_TEXT_SIZE = 32
@@ -32,17 +31,10 @@ export type Props = {
 }
 
 local function SettingsPanel(props: Props)
-	local music, setMusic = React.useState(AudioSettings.get("music"))
-	local sfx, setSfx = React.useState(AudioSettings.get("sfx"))
+	local music, setMusic = React.useState(AudioSettings.getMusicVolume())
 
 	React.useEffect(function()
-		local connection = AudioSettings.changed:Connect(function(channel, volume)
-			if channel == "music" then
-				setMusic(volume)
-			else
-				setSfx(volume)
-			end
-		end)
+		local connection = AudioSettings.changed:Connect(setMusic)
 		return function()
 			connection:Disconnect()
 		end
@@ -83,7 +75,7 @@ local function SettingsPanel(props: Props)
 				PaddingBottom = PANEL_PADDING,
 			}),
 			Close = e(IconButton, {
-				glyph = CLOSE_GLYPH,
+				icon = "close",
 				onActivated = props.onClose,
 				anchorPoint = Vector2.new(1, 0),
 				position = UDim2.fromScale(1, 0),
@@ -104,23 +96,13 @@ local function SettingsPanel(props: Props)
 					label = "Music",
 					value = music,
 					layoutOrder = 2,
-					onChange = function(volume)
-						AudioSettings.set("music", volume)
-					end,
-				}),
-				Effects = e(Slider, {
-					label = "Sound effects",
-					value = sfx,
-					layoutOrder = 3,
-					onChange = function(volume)
-						AudioSettings.set("sfx", volume)
-					end,
+					onChange = AudioSettings.setMusicVolume,
 				}),
 				Reset = e(InkButton, {
-					text = "Reset to defaults",
+					text = "Reset to default",
 					variant = "secondary",
 					size = RESET_BUTTON_SIZE,
-					layoutOrder = 4,
+					layoutOrder = 3,
 					onActivated = AudioSettings.resetToDefaults,
 				}),
 			}),

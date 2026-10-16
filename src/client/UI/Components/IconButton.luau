@@ -1,17 +1,18 @@
--- A square ink-outlined button holding one symbol (settings gear, back arrow, close).
+-- A square ink-outlined button holding one drawn ink icon (settings, back, close).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local React = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("React"))
 local Theme = require(script.Parent.Parent.Theme)
+local InkIcon = require(script.Parent.InkIcon)
 
 local e = React.createElement
 local Colors, Size = Theme.Colors, Theme.Size
 
-local GLYPH_SIZE = 28
+local ICON_SIZE = 24
 
 export type Props = {
-	glyph: string,
+	icon: InkIcon.Kind,
 	onActivated: () -> (),
 	position: UDim2?,
 	anchorPoint: Vector2?,
@@ -22,10 +23,7 @@ local function IconButton(props: Props)
 	local hovered, setHovered = React.useState(false)
 
 	return e("TextButton", {
-		Text = props.glyph,
-		FontFace = Theme.Fonts.bodyHeavy,
-		TextSize = GLYPH_SIZE,
-		TextColor3 = Colors.ink,
+		Text = "",
 		AutoButtonColor = false,
 		Size = UDim2.fromOffset(Size.iconButton, Size.iconButton),
 		Position = props.position,
@@ -49,6 +47,7 @@ local function IconButton(props: Props)
 			Thickness = Size.border,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 		}),
+		Icon = e(InkIcon, { kind = props.icon, size = ICON_SIZE }),
 	})
 end
 

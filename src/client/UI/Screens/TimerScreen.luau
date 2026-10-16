@@ -26,12 +26,14 @@ local SKIP_PRODUCT_ID = Config.Products.SKIP_TIMER_PRODUCT_ID
 local PASS_ID = Config.Products.INSTANT_UNLOCK_PASS_ID
 local COLUMN_TOP = 56
 local RING_DIAMETER = 300
+local RING_CLEARANCE = 34 -- the ring's thick outline is drawn outside its box
+local RING_TO_BUTTONS = 52
 local CLOCK_TEXT_SIZE = 76
 local BUTTON_HEIGHT = 72
 local SKIP_BUTTON_WIDTH = 330
 local UNLOCK_BUTTON_WIDTH = 400
 local BUTTON_GAP = UDim.new(0, 18)
-local FOOTNOTE = `Results unlock after {Format.minutes(Config.Quiz.COOLDOWN_SECONDS)}, or skip the wait.`
+local FOOTNOTE = `Results unlock after {Format.minutes(Config.Quiz.RESULT_WAIT_SECONDS)}, or skip the wait.`
 
 export type Props = {
 	deadline: number, -- os.clock() time when the result unlocks
@@ -84,7 +86,7 @@ local function TimerScreen(props: Props)
 			color = Colors.textMuted,
 			layoutOrder = 3,
 		}),
-		GapSubtitle = e(Spacer, { height = 18, layoutOrder = 4 }),
+		GapSubtitle = e(Spacer, { height = RING_CLEARANCE, layoutOrder = 4 }),
 		Ring = e(InkRing, { diameter = RING_DIAMETER, layoutOrder = 5 }, {
 			Clock = e(Label, {
 				text = Format.clock(secondsLeft),
@@ -94,7 +96,7 @@ local function TimerScreen(props: Props)
 				automaticSize = Enum.AutomaticSize.None,
 			}),
 		}),
-		GapRing = e(Spacer, { height = 36, layoutOrder = 6 }),
+		GapRing = e(Spacer, { height = RING_TO_BUTTONS, layoutOrder = 6 }),
 		Buttons = e("Frame", {
 			AutomaticSize = Enum.AutomaticSize.XY,
 			Size = UDim2.fromScale(0, 0),

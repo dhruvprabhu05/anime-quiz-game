@@ -11,7 +11,8 @@ export type PlayerData = {
 	unlockedArchetypes: { string }, -- archetype ids collected so far
 }
 
-export type StartQuizResult = { ok: true, questionOrder: { number } } | { ok: false, waitSeconds: number }
+-- ok = false only while the player still has a quiz in progress
+export type StartQuizResult = { ok: true, questionOrder: { number } } | { ok: false }
 
 local Remotes = {}
 

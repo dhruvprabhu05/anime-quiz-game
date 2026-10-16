@@ -11,6 +11,9 @@ local Theme = {}
 -- The UI is laid out in these pixels and scaled to fit the player's screen
 Theme.DESIGN_SIZE = Vector2.new(1280, 720)
 
+-- Roblox refuses TextSize above this; use the ScaledText component for bigger text
+Theme.MAX_TEXT_SIZE = 100
+
 Theme.Colors = table.freeze({
 	paper = Color3.fromHex("F3EAD7"), -- washi background
 	paperLight = Color3.fromHex("FBF6EA"), -- cards and answer buttons
@@ -22,7 +25,6 @@ Theme.Colors = table.freeze({
 	textLocked = Color3.fromHex("655A4E"), -- text on locked cards
 	lockedBorder = Color3.fromHex("9A8F80"), -- decoration only (too faint for text)
 	vermilion = Color3.fromHex("B8372B"), -- the one accent: main buttons, seals
-	gold = Color3.fromHex("A8822F"), -- decoration only: scroll rods
 	overlay = Color3.fromHex("000000"), -- dims the screen behind popups
 })
 
@@ -58,8 +60,6 @@ Theme.Size = table.freeze({
 	buttonHeight = 64,
 	iconButton = 52,
 	screenPadding = 80, -- left/right margin of screen content
-	scrollRod = 14, -- ink bars at the top and bottom of every screen
-	scrollRodTrim = 3, -- gold line inside each rod
 	gap = 16,
 	gapLarge = 28,
 })

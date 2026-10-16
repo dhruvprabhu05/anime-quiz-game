@@ -5,8 +5,9 @@
 local Config = {}
 
 Config.Quiz = {
-	-- Wait between finishing a quiz and seeing the result (also the gap before the next quiz)
-	COOLDOWN_SECONDS = 15 * 60,
+	-- Wait between finishing a quiz and seeing the result (Instant Unlock owners skip it).
+	-- Players can start another quiz as soon as they've seen the result.
+	RESULT_WAIT_SECONDS = 15 * 60,
 	-- Seconds removed from the wait by one "Skip 5 Minutes" purchase
 	SKIP_SECONDS = 5 * 60,
 	ANSWERS_PER_QUESTION = 4,
@@ -17,8 +18,6 @@ Config.Quiz = {
 	CLIENT_ANSWER_LOCK_SECONDS = 0.4,
 	-- A quiz with no accepted answer for this long counts as abandoned and can be restarted
 	STALE_SESSION_SECONDS = 120,
-	-- One meme interlude every N questions on average (never before the first question)
-	INTERLUDE_ONE_IN = 5,
 }
 
 Config.Products = {

@@ -27,7 +27,7 @@ end
 function MusicPlayer.start()
 	local music = Instance.new("Sound")
 	music.Name = "BackgroundMusic"
-	music.Volume = AudioSettings.get("music")
+	music.Volume = AudioSettings.getMusicVolume()
 	music.Parent = SoundService
 
 	local order = shuffled(PLAYLIST)
@@ -47,10 +47,8 @@ function MusicPlayer.start()
 		playCurrent()
 	end)
 
-	AudioSettings.changed:Connect(function(channel, volume)
-		if channel == "music" then
-			music.Volume = volume
-		end
+	AudioSettings.changed:Connect(function(volume)
+		music.Volume = volume
 	end)
 
 	playCurrent()

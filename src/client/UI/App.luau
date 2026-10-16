@@ -5,23 +5,19 @@
 -- Three ScreenGuis, back to front:
 --   Backdrop: full-screen paper, scroll rods and watermark
 --   Content:  the current screen, kept clear of Roblox's top bar and notches, scaled to fit
---   Overlay:  meme interludes and the settings popup
+--   Overlay:  the settings popup
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local React = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("React"))
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Config = require(Shared:WaitForChild("Config"))
 local Remotes = require(Shared:WaitForChild("Remotes"))
 
 local UI = script.Parent
 local Theme = require(UI.Theme)
-local Format = require(UI.Util.Format)
 local useFitScale = require(UI.Hooks.useFitScale)
 local useRemoteEvent = require(UI.Hooks.useRemoteEvent)
 local ScreenBackdrop = require(UI.Components.ScreenBackdrop)
-local Interludes = require(UI.Interlude.Interludes)
-local InterludeOverlay = require(UI.Interlude.InterludeOverlay)
 local Screens = UI.Screens
 local WelcomeScreen = require(Screens.WelcomeScreen)
 local QuizScreen = require(Screens.QuizScreen)
@@ -55,7 +51,7 @@ local WATERMARKS: { [ScreenName]: string } = table.freeze({
 })
 
 local DISPLAY_ORDER = table.freeze({ backdrop = 0, content = 1, overlay = 2 })
-local BUSY_NOTICE = "Your last quiz is still being scored. Try again in a moment."
+local START_FAILED_NOTICE = "The quiz couldn't start. Try again in a moment."
 
 local function screenGui(props, children)
 	props.ResetOnSpawn = false
@@ -69,9 +65,7 @@ local function App()
 	local quiz, setQuiz = React.useState(nil :: QuizState?)
 	local result, setResult = React.useState(nil :: Result?)
 	local notice, setNotice = React.useState(nil :: string?)
-	local interludeIndex, setInterludeIndex = React.useState(nil :: number?)
 	local settingsOpen, setSettingsOpen = React.useState(false)
-	local shownInterludes = React.useRef({})
 	local scale, contentRef = useFitScale()
 
 	-- Load the player's collection once
@@ -114,15 +108,10 @@ local function App()
 				return Remotes.func(Remotes.Functions.StartQuiz):InvokeServer()
 			end)
 			if ok and response and response.ok then
-				table.clear(shownInterludes.current)
 				setQuiz({ questionOrder = response.questionOrder, position = 1, finished = false })
 				setScreen("quiz")
 			else
-				setNotice(
-					if ok and response and response.waitSeconds > 0
-						then `You can take the quiz again in {Format.clock(response.waitSeconds)}.`
-						else BUSY_NOTICE
-				)
+				setNotice(START_FAILED_NOTICE)
 				setScreen("welcome")
 			end
 		end)
@@ -137,9 +126,6 @@ local function App()
 			position = if isLast then current.position else current.position + 1,
 			finished = isLast,
 		})
-		if not isLast and math.random(1, Config.Quiz.INTERLUDE_ONE_IN) == 1 then
-			setInterludeIndex(Interludes.pickUnshown(shownInterludes.current))
-		end
 	end
 
 	local currentScreen
@@ -194,7 +180,7 @@ local function App()
 			DisplayOrder = DISPLAY_ORDER.backdrop,
 			ScreenInsets = Enum.ScreenInsets.None,
 		}, {
-			Paper = e(ScreenBackdrop, { watermark = WATERMARKS[screen] }),
+			Paper = e(ScreenBackdrop, { watermark = WATERMARKS[screen], scale = scale }),
 		}),
 		Content = screenGui({
 			ref = contentRef,
@@ -215,14 +201,6 @@ local function App()
 			DisplayOrder = DISPLAY_ORDER.overlay,
 			ScreenInsets = Enum.ScreenInsets.None,
 		}, {
-			Interlude = if interludeIndex
-				then e(InterludeOverlay, {
-					interludeIndex = interludeIndex,
-					onDone = function()
-						setInterludeIndex(nil)
-					end,
-				})
-				else nil,
 			Settings = if settingsOpen
 				then e(SettingsPanel, {
 					scale = scale,

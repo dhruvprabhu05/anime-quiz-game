@@ -1,6 +1,7 @@
 --!strict
--- Runs quiz sessions: hands out question orders, collects answers, scores the result
--- server-side (so exploiters can't pick their title) and enforces the wait between quizzes.
+-- Runs quiz sessions: hands out question orders, collects answers, and scores the result
+-- server-side (so exploiters can't pick their title). Players can start a new quiz as soon
+-- as they have finished the last one.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -25,17 +26,8 @@ type Session = {
 }
 
 local sessions: { [Player]: Session } = {}
-local completedAt: { [Player]: number } = {}
 
 local QuizService = {}
-
-local function cooldownRemaining(player: Player): number
-	local finished = completedAt[player]
-	if not finished then
-		return 0
-	end
-	return math.max(0, QUIZ.COOLDOWN_SECONDS - (os.clock() - finished))
-end
 
 -- Highest total wins; ties go to the archetype listed first in Data/Archetypes
 local function scoreSession(session: Session): string
@@ -60,26 +52,21 @@ end
 
 local function finishQuiz(player: Player, session: Session)
 	sessions[player] = nil
-	completedAt[player] = os.clock()
 
 	local archetypeId = scoreSession(session)
 	PlayerDataService.recordResult(player, archetypeId)
 
-	local waitSeconds = if GamePassService.ownsInstantUnlock(player) then 0 else QUIZ.COOLDOWN_SECONDS
+	local waitSeconds = if GamePassService.ownsInstantUnlock(player) then 0 else QUIZ.RESULT_WAIT_SECONDS
 	Remotes.event(Remotes.Events.QuizResult):FireClient(player, archetypeId, waitSeconds)
 
 	PlayerDataService.save(player)
 end
 
 local function startQuiz(player: Player): Remotes.StartQuizResult
+	-- One quiz at a time, unless the previous one was abandoned
 	local existing = sessions[player]
 	if existing and os.clock() - existing.lastAnswerAt < QUIZ.STALE_SESSION_SECONDS then
-		return { ok = false, waitSeconds = 0 }
-	end
-
-	local waitSeconds = cooldownRemaining(player)
-	if waitSeconds > 0 and not GamePassService.ownsInstantUnlock(player) then
-		return { ok = false, waitSeconds = waitSeconds }
+		return { ok = false }
 	end
 
 	local now = os.clock()
@@ -116,12 +103,8 @@ local function submitAnswer(player: Player, answerIndex: unknown)
 	end
 end
 
--- Called when a "Skip 5 Minutes" purchase is granted
+-- Called when a "Skip 5 Minutes" purchase is granted: tells the player's timer to jump ahead
 function QuizService.applyTimerSkip(player: Player)
-	local finished = completedAt[player]
-	if finished then
-		completedAt[player] = finished - QUIZ.SKIP_SECONDS
-	end
 	Remotes.event(Remotes.Events.TimerSkipGranted):FireClient(player, QUIZ.SKIP_SECONDS)
 end
 
@@ -130,7 +113,6 @@ function QuizService.init()
 	Remotes.event(Remotes.Events.SubmitAnswer).OnServerEvent:Connect(submitAnswer)
 	Players.PlayerRemoving:Connect(function(player)
 		sessions[player] = nil
-		completedAt[player] = nil
 	end)
 end
 

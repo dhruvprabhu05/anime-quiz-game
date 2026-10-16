@@ -16,7 +16,6 @@ local TitleCard = require(Components.TitleCard)
 local e = React.createElement
 local Colors, TextSize, Fonts, Size = Theme.Colors, Theme.TextSize, Theme.Fonts, Theme.Size
 
-local BACK_GLYPH = "←"
 local HEADER_TOP = 44
 local HEADER_GAP = UDim.new(0, 22)
 local PROGRESS_SIZE = UDim2.fromOffset(220, 8)
@@ -67,7 +66,7 @@ local function CollectionScreen(props: Props)
 				SortOrder = Enum.SortOrder.LayoutOrder,
 				Padding = HEADER_GAP,
 			}),
-			Back = e(IconButton, { glyph = BACK_GLYPH, onActivated = props.onBack, layoutOrder = 1 }),
+			Back = e(IconButton, { icon = "back", onActivated = props.onBack, layoutOrder = 1 }),
 			Title = e(Label, {
 				text = "Your Collection",
 				font = Fonts.display,

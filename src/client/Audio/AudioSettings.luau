@@ -1,33 +1,27 @@
 --!strict
--- Music and sound-effect volumes, shared by the settings panel and anything that plays sound.
+-- The background music volume, shared by the settings panel and the music player.
 
-export type Channel = "music" | "sfx"
+local DEFAULT_MUSIC_VOLUME = 0.3
 
-local DEFAULT_VOLUMES = table.freeze({
-	music = 0.3,
-	sfx = 0.8,
-})
-
-local volumes: { [Channel]: number } = { music = DEFAULT_VOLUMES.music, sfx = DEFAULT_VOLUMES.sfx }
+local musicVolume = DEFAULT_MUSIC_VOLUME
 local changedEvent = Instance.new("BindableEvent")
 
 local AudioSettings = {}
 
--- Fires (channel: Channel, volume: number) whenever a volume changes
+-- Fires (volume: number) whenever the music volume changes
 AudioSettings.changed = changedEvent.Event
 
-function AudioSettings.get(channel: Channel): number
-	return volumes[channel]
+function AudioSettings.getMusicVolume(): number
+	return musicVolume
 end
 
-function AudioSettings.set(channel: Channel, volume: number)
-	volumes[channel] = math.clamp(volume, 0, 1)
-	changedEvent:Fire(channel, volumes[channel])
+function AudioSettings.setMusicVolume(volume: number)
+	musicVolume = math.clamp(volume, 0, 1)
+	changedEvent:Fire(musicVolume)
 end
 
 function AudioSettings.resetToDefaults()
-	AudioSettings.set("music", DEFAULT_VOLUMES.music)
-	AudioSettings.set("sfx", DEFAULT_VOLUMES.sfx)
+	AudioSettings.setMusicVolume(DEFAULT_MUSIC_VOLUME)
 end
 
 return AudioSettings

@@ -20,7 +20,6 @@ local Spacer = require(Components.Spacer)
 local e = React.createElement
 local Colors, TextSize, Fonts = Theme.Colors, Theme.TextSize, Theme.Fonts
 
-local SETTINGS_GLYPH = "⚙"
 local BRAND_KANJI = "魂" -- "soul"
 local COLUMN_TOP = 78
 local COLUMN_WIDTH = 760
@@ -134,7 +133,7 @@ local function WelcomeScreen(props: Props)
 		BackgroundTransparency = 1,
 	}, {
 		Settings = e(IconButton, {
-			glyph = SETTINGS_GLYPH,
+			icon = "settings",
 			onActivated = props.onSettings,
 			anchorPoint = TOP_RIGHT,
 			position = SETTINGS_POSITION,
