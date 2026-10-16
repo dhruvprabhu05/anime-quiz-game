@@ -1,7 +1,12 @@
 --!strict
 -- Server entry point: creates the remotes, then starts each service in dependency order.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- The game is played entirely in menus, so players get no avatar: nothing to walk or jump
+-- with, and no on-screen movement controls covering the UI on phones.
+Players.CharacterAutoLoads = false
 
 local Remotes = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes"))
 
