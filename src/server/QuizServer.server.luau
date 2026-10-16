@@ -35,10 +35,15 @@ loadPlayerDataRemote.OnServerInvoke = function(player: Player)
 end
 
 -- Track each player's active quiz session
-local activeSessions: { [Player]: { questionOrder: { number }, answers: { number }, expectedIndex: number, lastAnswerTime: number } } = {}
+local activeSessions: { [Player]: { questionOrder: { number }, answers: { number }, expectedIndex: number, startTime: number, lastAnswerTime: number } } = {}
 
--- Minimum seconds between answers to prevent spam
-local MIN_ANSWER_INTERVAL = 0.8
+-- Minimum average seconds per answer to prevent spam.
+-- Must stay below the client's answer lock in QuizUI (MIN_READ_SECONDS = 0.4),
+-- otherwise honest answers get dropped and the quiz never finishes.
+local MIN_ANSWER_INTERVAL = 0.3
+
+-- A session with no accepted answer for this long is treated as abandoned
+local STALE_SESSION_SECONDS = 120
 
 -- Server-side quiz cooldown tracking
 local quizCompletionTimes: { [number]: number } = {}
@@ -56,8 +61,9 @@ end
 -- Handle StartQuiz: create a new session with shuffled question order
 local startQuizRemote = Remotes.get("StartQuiz") :: RemoteFunction
 startQuizRemote.OnServerInvoke = function(player: Player)
-	-- Prevent starting a new quiz while one is active
-	if activeSessions[player] then
+	-- Prevent starting a new quiz while one is active (unless it has stalled)
+	local existingSession = activeSessions[player]
+	if existingSession and tick() - existingSession.lastAnswerTime < STALE_SESSION_SECONDS then
 		return nil
 	end
 
@@ -81,6 +87,7 @@ startQuizRemote.OnServerInvoke = function(player: Player)
 		questionOrder = order,
 		answers = {},
 		expectedIndex = 1,
+		startTime = tick(),
 		lastAnswerTime = tick(),
 	}
 	return order
@@ -106,7 +113,9 @@ submitAnswerRemote.OnServerEvent:Connect(function(player: Player, answerIndex: n
 
 	-- Rate limit: reject answers submitted too fast
 	local now = tick()
-	if now - session.lastAnswerTime < MIN_ANSWER_INTERVAL then
+	-- Measured from quiz start, not the previous answer, so network jitter that
+	-- bunches two answers together can't cause one to be dropped.
+	if now - session.startTime < (#session.answers + 1) * MIN_ANSWER_INTERVAL then
 		return
 	end
 	session.lastAnswerTime = now

@@ -226,6 +226,11 @@ function QuizUI.showQuestion(questionIndex: number, currentNum: number, totalQue
 	end
 	table.clear(answerConnections)
 
+	-- Ignore clicks for a moment after a question appears (prevents accidental
+	-- double-taps and keeps answers slower than the server's spam limit)
+	local MIN_READ_SECONDS = 0.4
+	local shownAt = os.clock()
+
 	-- Update answer buttons with staggered fade-in
 	for i = 1, 4 do
 		local button = frame:FindFirstChild("Answer" .. i) :: TextButton
@@ -243,7 +248,7 @@ function QuizUI.showQuestion(questionIndex: number, currentNum: number, totalQue
 		end)
 
 		local conn = button.MouseButton1Click:Connect(function()
-			if frame and frame:FindFirstChild("Answer1").Visible then
+			if frame and frame:FindFirstChild("Answer1").Visible and os.clock() - shownAt >= MIN_READ_SECONDS then
 				-- Immediately hide all buttons to prevent race conditions
 				for j = 1, 4 do
 					local btn = frame:FindFirstChild("Answer" .. j) :: TextButton
