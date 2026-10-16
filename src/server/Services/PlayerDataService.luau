@@ -48,16 +48,19 @@ function PlayerDataService.get(player: Player): PlayerData
 	return cache[player] or PlayerDataService.load(player)
 end
 
-function PlayerDataService.save(player: Player)
-	local data = cache[player]
-	if not data or loadFailed[player] then
-		return
-	end
+local function write(player: Player, data: PlayerData)
 	local ok, err = pcall(function()
 		store:SetAsync(storeKey(player), data)
 	end)
 	if not ok then
 		warn(`[PlayerDataService] Could not save data for {player.Name}: {err}`)
+	end
+end
+
+function PlayerDataService.save(player: Player)
+	local data = cache[player]
+	if data and not loadFailed[player] then
+		write(player, data)
 	end
 end
 
@@ -71,9 +74,14 @@ function PlayerDataService.recordResult(player: Player, archetypeId: string)
 end
 
 local function onPlayerRemoving(player: Player)
-	PlayerDataService.save(player)
+	-- Take the player out of the cache before saving, so a server shutdown happening at
+	-- the same moment (BindToClose) doesn't save them a second time
+	local data, failed = cache[player], loadFailed[player]
 	cache[player] = nil
 	loadFailed[player] = nil
+	if data and not failed then
+		write(player, data)
+	end
 end
 
 function PlayerDataService.init()
@@ -85,10 +93,19 @@ function PlayerDataService.init()
 
 	Remotes.func(Remotes.Functions.LoadPlayerData).OnServerInvoke = PlayerDataService.get
 
-	-- Save everyone if the server shuts down before PlayerRemoving runs
+	-- Save everyone if the server shuts down before PlayerRemoving runs, and keep the
+	-- server open until those saves finish
 	game:BindToClose(function()
+		local pending = 0
 		for player in cache do
-			task.spawn(PlayerDataService.save, player)
+			pending += 1
+			task.spawn(function()
+				onPlayerRemoving(player)
+				pending -= 1
+			end)
+		end
+		while pending > 0 do
+			task.wait()
 		end
 	end)
 end
