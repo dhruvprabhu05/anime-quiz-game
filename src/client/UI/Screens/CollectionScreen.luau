@@ -19,6 +19,8 @@ local Colors, TextSize, Fonts, Size = Theme.Colors, Theme.TextSize, Theme.Fonts,
 local HEADER_TOP = 44
 local HEADER_GAP = UDim.new(0, 22)
 local PROGRESS_SIZE = UDim2.fromOffset(220, 8)
+-- Keeps the progress clear of the settings button in the top-right corner
+local PROGRESS_RIGHT = Size.screenPadding + Size.iconButton + Size.gapLarge
 local GRID_TOP = 140
 local GRID_COLUMNS = 5
 local CARD_HEIGHT = 238
@@ -79,7 +81,7 @@ local function CollectionScreen(props: Props)
 		}),
 		Progress = e("Frame", {
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -Size.screenPadding, 0, HEADER_TOP + 6),
+			Position = UDim2.new(1, -PROGRESS_RIGHT, 0, HEADER_TOP + 6),
 			AutomaticSize = Enum.AutomaticSize.XY,
 			Size = UDim2.fromScale(0, 0),
 			BackgroundTransparency = 1,

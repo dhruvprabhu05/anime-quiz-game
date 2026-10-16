@@ -13,7 +13,6 @@ local Theme = require(UI.Theme)
 local Components = UI.Components
 local Label = require(Components.Label)
 local InkButton = require(Components.InkButton)
-local IconButton = require(Components.IconButton)
 local Seal = require(Components.Seal)
 local Spacer = require(Components.Spacer)
 
@@ -36,8 +35,6 @@ local BUTTON_GAP = UDim.new(0, 14)
 local PROGRESS_BOTTOM = 52
 local PROGRESS_SEAL_SIZE = 34
 local PROGRESS_SEAL_GAP = UDim.new(0, 8)
-local SETTINGS_POSITION = UDim2.new(1, -48, 0, 40)
-local TOP_RIGHT = Vector2.new(1, 0)
 local START_TEXT_SIZE = 26
 local NOTICE_GAP = 14
 local SUBTITLE = `{QuestionBank.getTotalQuestions()} questions · {#Archetypes.list} titles · find the one that is yours`
@@ -47,7 +44,6 @@ export type Props = {
 	notice: string?, -- e.g. why the quiz couldn't start
 	onStart: () -> (),
 	onCollection: () -> (),
-	onSettings: () -> (),
 }
 
 local function Banner()
@@ -132,12 +128,6 @@ local function WelcomeScreen(props: Props)
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 	}, {
-		Settings = e(IconButton, {
-			icon = "settings",
-			onActivated = props.onSettings,
-			anchorPoint = TOP_RIGHT,
-			position = SETTINGS_POSITION,
-		}),
 		Column = e("Frame", {
 			AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.new(0.5, 0, 0, COLUMN_TOP),

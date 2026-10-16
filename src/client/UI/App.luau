@@ -18,6 +18,7 @@ local Theme = require(UI.Theme)
 local useFitScale = require(UI.Hooks.useFitScale)
 local useRemoteEvent = require(UI.Hooks.useRemoteEvent)
 local ScreenBackdrop = require(UI.Components.ScreenBackdrop)
+local IconButton = require(UI.Components.IconButton)
 local Screens = UI.Screens
 local WelcomeScreen = require(Screens.WelcomeScreen)
 local QuizScreen = require(Screens.QuizScreen)
@@ -51,6 +52,10 @@ local WATERMARKS: { [ScreenName]: string } = table.freeze({
 })
 
 local DISPLAY_ORDER = table.freeze({ backdrop = 0, content = 1, overlay = 2 })
+-- The settings button sits in the top-right corner above every screen
+local SETTINGS_POSITION = UDim2.new(1, -48, 0, 40)
+local SETTINGS_ANCHOR = Vector2.new(1, 0)
+local SETTINGS_Z_INDEX = 2
 local START_FAILED_NOTICE = "The quiz couldn't start. Try again in a moment."
 
 local function screenGui(props, children)
@@ -169,9 +174,6 @@ local function App()
 			onCollection = function()
 				setScreen("collection")
 			end,
-			onSettings = function()
-				setSettingsOpen(true)
-			end,
 		})
 	end
 
@@ -195,6 +197,15 @@ local function App()
 			}, {
 				Scale = e("UIScale", { Scale = scale }),
 				Screen = currentScreen,
+				Settings = e(IconButton, {
+					icon = "settings",
+					anchorPoint = SETTINGS_ANCHOR,
+					position = SETTINGS_POSITION,
+					zIndex = SETTINGS_Z_INDEX,
+					onActivated = function()
+						setSettingsOpen(true)
+					end,
+				}),
 			}),
 		}),
 		Overlay = screenGui({

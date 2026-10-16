@@ -17,6 +17,7 @@ export type Props = {
 	position: UDim2?,
 	anchorPoint: Vector2?,
 	layoutOrder: number?,
+	zIndex: number?,
 }
 
 local function IconButton(props: Props)
@@ -29,6 +30,7 @@ local function IconButton(props: Props)
 		Position = props.position,
 		AnchorPoint = props.anchorPoint,
 		LayoutOrder = props.layoutOrder,
+		ZIndex = props.zIndex,
 		BackgroundColor3 = Colors.paperLight,
 		BackgroundTransparency = if hovered then 0 else 1,
 		[React.Event.Activated] = function()
