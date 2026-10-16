@@ -22,12 +22,9 @@ Config.Quiz = {
 }
 
 Config.Products = {
-	-- Developer Product bought to skip 5 minutes of the wait.
-	-- NOTE: this ID currently points at a product named "Class Change" (99 R$) on the game's
-	-- Creator Dashboard. Create a 5 R$ "Skip 5 Minutes" product and put its ID here.
+	-- Developer Product "Skip 5 Minutes" (5 R$)
 	SKIP_TIMER_PRODUCT_ID = 3576830852,
-	-- Game Pass that removes the wait forever.
-	-- NOTE: currently the "Grand Master Pass" (199 R$); rename/reprice or replace it.
+	-- Game Pass "Instant Unlock" (49 R$): removes the wait forever
 	INSTANT_UNLOCK_PASS_ID = 1797259226,
 }
 
